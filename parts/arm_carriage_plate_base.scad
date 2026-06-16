@@ -13,8 +13,8 @@ ac_linear_bearing_type           = LM8UU;
 ac_motor_type                    = NEMA17_40;          // J2(어깨 관절, shoulder joint)를 벨트로 구동하는 모터
 ac_driven_axis_ball_bearing_type = BB608;              // J2 종동축(driven axis)을 상하로 지지
 ac_driven_axis_pulley_type       = GT2x60x8_pulley;    // 벨트가 도는 J2 종동 풀리
-ac_j2_idler_pulley_type          = GT2x20_toothed_idler;
-ac_j2_idler_screw_type           = M4_cap_screw;       // 아이들러 조절 슬롯의 축 볼트
+ac_j2_idler_pulley_type          = GT2x20_idler_5mm;   // 5mm 보어 베어링 일체형(integral bearing) GT2 20T 아이들러 — 축에서 자유 회전
+ac_j2_idler_screw_type           = M5_cap_screw;       // 아이들러 축 = 베어링 보어(5mm)에 맞춘 M5 볼트(슬롯에서 장력 조절)
 ac_standoff_type = ["M3x20_ff_hex_pillar", "hex", 3, 20, 5 / cos(30), 5 / cos(30), 6, 6, "silver", silver, -8, -8, true];
 
 // ── 독립 입력 치수(independent inputs) ────────────────────────────────────

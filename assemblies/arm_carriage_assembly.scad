@@ -26,8 +26,9 @@ function spacer_height(gap, washer_type) = max(0, gap - washer_thickness(washer_
 
 // ── 체결 부품(fasteners) ──────────────────────────────────────────────────
 ac_standoff_screw_type          = M3_cap_screw;
-ac_standoff_top_screw_length    = ac_plate_thickness + abs(pillar_top_thread(ac_standoff_type));
-ac_standoff_bottom_screw_length = ac_plate_thickness + abs(pillar_bot_thread(ac_standoff_type));
+// 표준 규격 길이(off-the-shelf): 판을 지나 F-F 스탠드오프 암나사에 무는 가장 긴 표준 캡스크류(바닥나지 않게 snap-down).
+ac_standoff_top_screw_length    = screw_shorter_than(ac_plate_thickness + abs(pillar_top_thread(ac_standoff_type)));
+ac_standoff_bottom_screw_length = screw_shorter_than(ac_plate_thickness + abs(pillar_bot_thread(ac_standoff_type)));
 ac_driven_axis_shoulder_bolt_type = M6_shoulder_screw;  // 8mm 숄더가 BB608 내경에 끼워 J2 종동축 고정축(fixed pivot)이 된다
 ac_driven_axis_washer_type      = screw_washer(ac_driven_axis_shoulder_bolt_type);
 ac_driven_axis_locknut_type     = screw_nut(ac_driven_axis_shoulder_bolt_type);
@@ -35,9 +36,10 @@ ac_j2_idler_washer_type         = screw_washer(ac_j2_idler_screw_type);
 ac_j2_idler_nut_type            = screw_nut(ac_j2_idler_screw_type);
 ac_leadnut_screw_type           = leadnut_screw(ac_leadnut_type);
 ac_leadnut_screw_nut_type       = screw_nut(ac_leadnut_screw_type);
-ac_leadnut_screw_length = ac_plate_thickness
+// 표준 규격 길이(off-the-shelf): 너트까지 닿는 가장 짧은 표준 캡스크류(snap-up).
+ac_leadnut_screw_length = screw_longer_than(ac_plate_thickness
                           + washer_thickness(screw_washer(ac_leadnut_screw_type))
-                          + nut_thickness(ac_leadnut_screw_nut_type);
+                          + nut_thickness(ac_leadnut_screw_nut_type));
 
 // ── J2 벨트 구동(belt drive) ──────────────────────────────────────────────
 ac_motor_pulley_type = GT2x20um_pulley;
@@ -71,9 +73,10 @@ ac_driven_axis_upper_spacer_height = spacer_height(ac_driven_axis_upper_gap, ac_
 ac_driven_axis_lower_spacer_height = spacer_height(ac_driven_axis_lower_gap, ac_driven_axis_washer_type);
 ac_driven_axis_spacer_outer_radius = 6;
 ac_driven_axis_spacer_inner_radius = screw_radius(ac_driven_axis_shoulder_bolt_type) + shaft_clearance / 2;
-ac_driven_axis_shoulder_bolt_length = ac_plate_top_z - ac_housing_z
+// 표준 규격 길이(off-the-shelf): nyloc까지 닿는 가장 짧은 표준 길이(snap-up). 여분은 너트 아래로 빠진다.
+ac_driven_axis_shoulder_bolt_length = screw_longer_than(ac_plate_top_z - ac_housing_z
                                       + washer_thickness(ac_driven_axis_washer_type)
-                                      + nut_thickness(ac_driven_axis_locknut_type, nyloc = true);
+                                      + nut_thickness(ac_driven_axis_locknut_type, nyloc = true));
 
 // ── J2 아이들러 스택(idler stack) — 대칭 2개 ───────────────────────────────
 ac_j2_idler_pulley_mount_z  = ac_j2_belt_center_z - pulley_offset(ac_j2_idler_pulley_type);
@@ -85,9 +88,10 @@ ac_j2_idler_upper_spacer_height = spacer_height(ac_j2_idler_upper_gap, ac_j2_idl
 ac_j2_idler_lower_spacer_height = spacer_height(ac_j2_idler_lower_gap, ac_j2_idler_washer_type);
 ac_j2_idler_spacer_outer_radius = washer_diameter(ac_j2_idler_washer_type) / 2;
 ac_j2_idler_spacer_inner_radius = screw_clearance_radius(ac_j2_idler_screw_type);
-ac_j2_idler_screw_length = ac_plate_top_z - ac_housing_z
+// 표준 규격 길이(off-the-shelf): nyloc까지 닿는 가장 짧은 표준 M5 길이(snap-up).
+ac_j2_idler_screw_length = screw_longer_than(ac_plate_top_z - ac_housing_z
                            + washer_thickness(ac_j2_idler_washer_type)
-                           + nut_thickness(ac_j2_idler_nut_type, nyloc = true);
+                           + nut_thickness(ac_j2_idler_nut_type, nyloc = true));
 
 // ── J1 선형 베어링 Z(linear bearing) ──────────────────────────────────────
 ac_linear_bearing_center_z = ac_plate_z + ac_linear_bearing_recess_depth - bearing_length(ac_linear_bearing_type) / 2;

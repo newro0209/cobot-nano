@@ -12,20 +12,20 @@
 | 모터 | Stepper motor | `NEMA17_40` | 1 | J2 구동 모터 |
 | 풀리 | Motor pulley | `GT2x20um_pulley` | 1 | 6mm GT2 벨트 |
 | 풀리 | Driven pulley | `GT2x60x8_pulley` (60T, 8mm bore) | 1 | 6mm GT2 벨트 |
-| 풀리 | Idler pulley | `GT2x20_toothed_idler` | 2 | 대칭 조절 슬롯 장착 |
+| 풀리 | Idler pulley | `GT2x20_idler_5mm` (5mm 보어 베어링 일체형) | 2 | 대칭 슬롯, M5 축에서 자유 회전 |
 | 벨트 | Timing belt | `GT2x6` | 1 | 길이는 `belt()` 경로에서 산출 |
 | 베어링 | Ball bearing | `BB608` (8×22×7) | 2 | J2 종동축 상하 지지 |
 | 베어링 | Linear bearing | `LM8UU` | 2 | J1 가이드 로드 좌우 |
 | 리드넛 | Leadnut | `LSN8x2` | 2 | 플레이트 1개, 하우징 1개 |
 | 스탠드오프 | Female-female hex pillar | `M3x20_ff_hex_pillar` (길이 20mm) | 4 | 두 판 사이 간격 유지 |
-| 스크류 | Standoff screw set | M3 cap + washer/star washer, 길이 **17mm** | 8 | 상하 4개씩 |
+| 스크류 | Standoff screw set | M3 cap + washer/star washer, 길이 **16mm** | 8 | 상하 4개씩 |
 | 스크류 | Motor screw set | M3 cap + washer/star washer | 4 | NEMA17 체결(NopSCADlib 기본 길이) |
-| 스크류 | Leadnut screw set | M3 cap + washer/star washer + nut, 길이 **11.9mm** | 4 | 리드넛 2개 기준 |
-| 스크류 | Idler screw | M4 cap, 길이 **43.8mm** | 2 | 슬롯 조절 축 |
-| 너트 | Idler locknut | M4 nyloc nut | 2 | 아이들러 위치 고정 |
-| 와셔 | Idler washer | M4 washer | 8 | 아이들러 상하 스택 |
-| 스페이서 | Idler spacer | ID 4.4 / OD 9mm, 높이 상 **7.22** · 하 **2.68mm** | 4 | 아이들러 상하 각 1개 |
-| 스크류 | Driven axis shoulder bolt | `M6_shoulder_screw` (8mm shoulder), 길이 **47.6mm** | 1 | J2 종동축 고정축 |
+| 스크류 | Leadnut screw set | M3 cap + washer/star washer + nut, 길이 **12mm** | 4 | 리드넛 2개 기준 |
+| 스크류 | Idler axle screw | M5 cap, 길이 **50mm** | 2 | 아이들러 축(슬롯 장력 조절) |
+| 너트 | Idler locknut | M5 nyloc nut | 2 | 아이들러 위치 고정 |
+| 와셔 | Idler washer | M5 washer | 8 | 아이들러 상하 스택 |
+| 스페이서 | Idler spacer | ID 5.3 / OD 10mm, 높이 상 **7.02** · 하 **2.48mm** | 4 | 아이들러 위치 부싱(상하 각 1개) |
+| 스크류 | Driven axis shoulder bolt | `M6_shoulder_screw` (8mm shoulder), 길이 **50mm** | 1 | J2 종동축 고정축 |
 | 너트 | Driven axis locknut | M6 nyloc nut | 1 | 하우징 하부 체결 |
 | 와셔 | Driven axis washer | M8 washer | 4 | 숄더 볼트 스택 |
 | 스페이서 | Driven axis spacer | ID 8.5 / OD 12mm, 높이 상 **0.17** · 하 **3.64mm** | 2 | 풀리와 베어링 내륜 사이 |
@@ -40,10 +40,11 @@
 | J2 링크 길이 (모터축↔종동축) | 100 | `ac_j2_linear_link_length` |
 | 아이들러 중심 / 슬롯 이동 | x=50, y=±13 / 24 | `ac_j2_idler_center_x/y`, `ac_j2_idler_slot_travel` |
 
-> 스페이서 높이(0.17 / 3.64 / 7.22 / 2.68)는 `eps` 항을 포함한 CAD 파생값이라 소수점 둘째 자리에서 반올림했습니다. 구매·가공 전 콘솔 echo로 재확인하세요.
+> 스크류 길이는 NopSCADlib `screw_longer_than/shorter_than`로 표준 규격(off-the-shelf)에 스냅했습니다(스탠드오프는 바닥나지 않게 snap-down, 너트/nyloc 체결은 snap-up). 스페이서 높이(종동 0.17 / 3.64, 아이들러 7.02 / 2.48)는 `eps` 항을 포함한 CAD 파생값이라 반올림했으니 구매·가공 전 콘솔 echo로 재확인하세요.
 
 ## Notes
 
 - 아이들러 위치는 `ac_j2_idler_center_x`로 조절하고, 슬롯 이동 범위는 `ac_j2_idler_slot_travel`로 관리합니다.
 - 스탠드오프는 `ac_j2_belt_xy_keepout` 밖에 있어야 하며, 이 조건은 `arm_carriage_plate_base.scad`의 assert로 검증합니다.
-- `GT2x60x8_pulley`는 `vitamins/pulleys.scad`, `M6_shoulder_screw`는 `vitamins/screws.scad`에 정의된 로컬 vitamin 타입입니다(NopSCADlib 패밀리를 미러링).
+- 아이들러는 5mm 보어 베어링 일체형(integral bearing) GT2 20T 아이들러로, M5 축에서 자유 회전합니다(솔리드 풀리를 죄던 옛 방식 교체). 스페이서는 축에 끼워 아이들러를 벨트 높이에 두는 위치 부싱입니다.
+- `GT2x60x8_pulley`·`GT2x20_idler_5mm`는 `vitamins/pulleys.scad`, `M6_shoulder_screw`는 `vitamins/screws.scad`에 정의된 로컬 vitamin 타입입니다(NopSCADlib 패밀리를 미러링).
