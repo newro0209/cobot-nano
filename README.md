@@ -1,46 +1,44 @@
 # cobot-nano
 
-Parallel-link (4-bar) palletizing robot arm. Off-the-shelf parts maximized;
-fabricated parts are **2D-cut sheet** (plywood/acrylic) only — no 3D printing.
+SCARA robot arm, 3D-printed (FDM). Off-the-shelf parts (NopSCADlib vitamins)
+maximized.
 
 ## Design
-- **Parallelogram linkage** → drive motors mounted at the base, end-effector
-  stays level through the whole reach (classic palletizer trait).
-- **Sandwich plates** → links are 2+ stacked sheet plates for rigidity.
-- **Thickness via stacking** → thick parts (motor bracket) = N identical sheets,
-  never machined depth.
+- **SCARA** kinematic chain: vertical Z translation (J1) + horizontal shoulder
+  and elbow rotation (J2/J3) + tool roll (J4). See [docs/kinematic_chain.md](docs/kinematic_chain.md).
+- **3D-printed (FDM)**, off-the-shelf parts maximized. Recesses, counterbores
+  and press-fit seats are used freely; high-load seats are machined after
+  printing (`[CNC-LATER]`).
 
 ## Layout
 ```
-config.scad        shared specification, process allowances, render settings
-vitamins/          off-the-shelf parts (bought, not made)
-  *s.scad            local type lists for vitamins not in NopSCADlib
-  *.scad             local modules/accessors for vitamins not in NopSCADlib
-plates/            2D-cut profiles — xxx_2d() is the DXF source; links.scad holds link types
-fabrications/      3D fabricated plate parts and stacks from plates/
-assemblies/        base / arm / gripper sub-assemblies
-main.scad          full robot + animation hooks
-export/            nest plates -> DXF for cutting
+config.scad        shared spec, allowances, render settings; NopSCADlib + local vitamin includes
+vitamins/          local vitamins not in NopSCADlib (mirror NopSCADlib's family-per-file layout)
+  screws.scad        local M6_shoulder_screw added to NopSCADlib's screw family
+  pulleys.scad       local GT2x60x8_pulley added to NopSCADlib's pulley family
+parts/             fabricated parts (NopSCADlib printed/ analog) — 2D profile + extrude/pockets per module
+assemblies/        sub-assemblies — parts + vitamins, exploded view
+docs/              kinematic chain, BOM
+main.scad          full robot + animation hooks (incomplete scaffolding)
+export/            cut-file generation (not yet wired)
 ```
 
+## Conventions
+Structure and style follow **NopSCADlib's actual layout first, then
+`OPENSCAD_CONVENTIONS.md`**. There is no `plates/` / `fabrications/` split;
+fabricated parts live in `parts/` like NopSCADlib's `printed/`. See `CLAUDE.md`.
+
 ## Workflow
-1. Tune shared values in `config.scad` and link-family values in `plates/links.scad`.
-2. Preview robot: open `main.scad` in OpenSCAD (View > Animate to sweep pose).
-3. Cut files: `bash export/make_dxf.sh` → `sheet_6mm.dxf`.
+1. Tune shared values in `config.scad` and subsystem values in
+   `parts/arm_carriage_plate_base.scad`.
+2. Preview: open `assemblies/arm_carriage_assembly.scad` in OpenSCAD
+   (use the `ac_exploded` slider to explode the stack).
+3. Headless check: `openscad -o out.echo assemblies/arm_carriage_assembly.scad`
+   (only NopSCADlib's internal `2p54` deprecation should appear).
 
-## Part rule
-Every `plates/*.scad` defines only `name_2d()` profiles. `fabrications/*.scad`
-extrudes those profiles into sheet parts, stacks, and sandwiches for assembly
-preview.
-
-## Off-the-shelf BOM (fill in)
-| Part | Spec | Qty |
-|------|------|-----|
-| Stepper | NEMA17 | 3 |
-| Lazy-susan bearing | OD 100mm | 1 |
-| Ball bearing | 608 (8x22x7) | TBD |
-| Bolts | M5, M3 | TBD |
-| GT2 belt + pulleys | 20T, 5mm bore | TBD |
+## BOM
+See [docs/BOM.md](docs/BOM.md) for the arm carriage bill of materials with
+CAD-derived dimensions (plate thickness, screw lengths, spacer heights).
 
 ## NopSCADlib (required)
 NopSCADlib must be installed in your OpenSCAD libraries folder:
@@ -48,7 +46,8 @@ NopSCADlib must be installed in your OpenSCAD libraries folder:
 git clone https://github.com/nophead/NopSCADlib.git \
   "$HOME/Documents/OpenSCAD/libraries/NopSCADlib"
 ```
-Project vitamin files mirror NopSCADlib's `vitamins/` pattern only for parts not
-provided by NopSCADlib. Existing NopSCADlib vitamins are used directly, without
-local wrappers. The lazy-susan turntable is modeled locally because it is not
-provided by NopSCADlib.
+This machine's actual path: `C:\Program Files\OpenSCAD\libraries\NopSCADlib`.
+
+Project vitamin files mirror NopSCADlib's family-per-file pattern only for parts
+not provided by NopSCADlib (e.g. `M6_shoulder_screw`, `GT2x60x8_pulley`).
+Existing NopSCADlib vitamins are used directly, without local wrappers.

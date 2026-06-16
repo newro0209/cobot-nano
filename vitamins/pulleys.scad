@@ -1,0 +1,15 @@
+// vitamins/pulleys.scad - Local pulley types that extend NopSCADlib's pulley family.
+// Mirrors NopSCADlib's family-per-file layout: include the library family for the shared schema and
+// accessors (pulley_extent, pulley_bore, pulley_offset, ...), then append the project-specific type rows.
+//
+// NopSCADlib pulley 패밀리(family)를 그대로 쓰되, 라이브러리에 없는 프로젝트 전용 풀리 타입만 추가한다.
+// 라이브러리를 직접 수정할 수 없으므로 동일 패밀리 파일을 미러링한다 — 경로가 달라 가림(shadow) 충돌은 없다.
+
+include <NopSCADlib/core.scad>
+include <NopSCADlib/vitamins/screws.scad>
+include <NopSCADlib/vitamins/pulleys.scad>
+
+// J2 종동축(driven axis) 풀리 — 60T GT2, 보어(bore) 8mm를 BB608 내경/숄더 볼트에 맞춘다.
+// 바깥 지름(outer diameter) = 2*(60*2/(2*PI) - belt_pitch_offset(GT2x6)) ≈ 37.7mm (피치원에서 벨트 두께만큼 안쪽).
+//                   code               type  teeth od    belt   bore_r flange_d hub_h hub_l body_d sc_w sc_z sc_r screw          flanges
+GT2x60x8_pulley = ["GT2x60x8_pulley", "GT2", 60,   37.7, GT2x6, 7,     18,      8,    8,    41,    1.0, 6,   3.5, M3_grub_screw, 2];

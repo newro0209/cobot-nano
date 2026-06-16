@@ -18,7 +18,7 @@ version: 2.0-openscad
 
 ## 충돌 시 우선순위
 
-규칙이 충돌하면 위 항목이 항상 우선한다.
+이 문서보다 **NopSCADlib 실제 구조/스타일**이 먼저다(프로젝트 지시: NopSCADlib → 이 문서 순). NopSCADlib가 정하지 않은 부분에서 규칙이 충돌하면 아래 항목이 우선한다.
 
 1. **현재 부품·요구의 정확한 충족** — 지금 필요 없는 파라미터·옵션은 만들지 않는다 (YAGNI)
 2. **읽기 쉬움** — 한 번에 이해되지 않는 모델은 잘못된 설계다 (KISS)
@@ -70,14 +70,14 @@ OpenSCAD 관례에 따라 모듈·함수·변수는 `snake_case`로 작성한다
 sheet_thickness = 6;
 main_bolt_diameter = 5;
 
-// plates/links.scad
+// parts/links.scad
 lower_link_length = 200;
 upper_link_length = lower_link_length * upper_link_length_ratio;
 
 // parts/arm_carriage_plate_base.scad
 ac_leadnut_type = LSN8x2;
 ac_motor_center = [0, 0];
-ac_thickness = bb_width(ac_driven_axis_ball_bearing_type) + seat_shoulder_thickness;
+ac_plate_thickness = bb_width(ac_driven_axis_ball_bearing_type) + seat_shoulder_thickness;
 ```
 
 ---
@@ -124,21 +124,17 @@ axial_clearance    = 0.3;   // 회전 허브-인접부 축방향 간격(axial ga
 
 ### S-6 (MUST) `config.scad`와 plural 파일의 기준값 책임을 분리한다
 
-`config.scad`에는 제조 공차, 렌더 해상도, 판재 두께, 체결 부품 선택, 베이스 vitamin, 기본 포즈처럼 여러 계층이 공유하는 기준값을 둔다. 특정 부품 패밀리의 치수, 비율, 타입 배열은 해당 plural 파일에 둔다. 예를 들어 링크 길이, 링크 폭, 링크 타입 배열, 커플러 오프셋은 `plates/links.scad`에서 관리한다. 판재 적층 수처럼 2D 프로파일이 아니라 3D 제작 방식에 속하는 값은 `fabrications/` 계층에 둔다.
+`config.scad`에는 제조 공차, 렌더 해상도, 체결 부품 선택처럼 여러 계층이 공유하는 기준값을 둔다. 특정 서브시스템의 치수·좌표·타입은 해당 part 파일에서 짧은 패밀리 접두사로 둔다.
 
 ```scad
 // config.scad
-clearance = 0.3;
-$fn = 48;
-sheet_thickness = 6;
+clearance = 0.1;
+$fn = 56;
 main_bolt_diameter = 5;
 
-// plates/links.scad
-lower_link_length = 200;
-upper_link_length = lower_link_length * upper_link_length_ratio;
-
-// fabrications/link_stacks.scad
-link_stack_layers = 2;
+// parts/arm_carriage_plate_base.scad
+ac_plate_thickness = bb_width(ac_driven_axis_ball_bearing_type) + seat_shoulder_thickness;
+ac_motor_center = [0, 0];
 ```
 
 ### S-7 (MUST) 연결된 치수는 비율로 파생한다
@@ -146,7 +142,7 @@ link_stack_layers = 2;
 직접 mm 값을 두는 대상은 기준 링크 길이, 판재 두께, 볼트 지름처럼 외부 제약이나 설계 의사결정으로 독립적으로 정해지는 값으로 제한한다. lazy-susan처럼 외부 부품을 선택하는 타입도 독립 기준으로 볼 수 있다. 그 기준에 연결된 길이·간격·폭은 별도 mm 값으로 다시 쓰지 않고 비율이나 함수로 계산한다.
 
 ```scad
-// plates/links.scad
+// parts/links.scad
 lower_link_length = 200;
 upper_link_length_ratio = 1.2;
 link_width_ratio = 0.15;
@@ -164,17 +160,17 @@ base_diameter = bb_diameter(base_bearing) * base_diameter_ratio;
 
 타입 배열과 `prefix_property(type)` 접근자는 NopSCADlib식 vitamin 데이터처럼 독립 부품의 스키마가 명확할 때 사용한다. 로봇 전체 어셈블리의 임시 설계값을 배열 하나와 수십 개의 접근자 함수로 감싸지 않는다.
 
-### S-9 (MUST) 2D 프로파일, 제작 부품, 조립체 계층을 분리한다
+### S-9 (MUST) 부품·vitamin·조립체 계층을 분리한다 (NopSCADlib 구조)
 
-2D 절단 기반 프로젝트는 아래 계층을 분리한다.
+3D 프린팅 프로젝트는 NopSCADlib 구조를 따른다.
 
 ```text
-plates/        DXF 원천인 2D 프로파일만 정의
-fabrications/  2D 프로파일을 두께·적층·간격으로 3D 제작 부품화
-assemblies/    제작 부품과 vitamins를 배치해 기능 조립체 구성
+vitamins/      구입 부품 — NopSCADlib에 없는 로컬 타입만(패밀리당 한 파일로 미러링)
+parts/         제작(프린트) 부품 — NopSCADlib printed/ 대응, 2D 프로파일 + 압출/포켓을 한 모듈에
+assemblies/    parts와 vitamins를 배치해 기능 조립체 구성
 ```
 
-`plates/`에는 `linear_extrude()`, 색상, 판재 적층, 샌드위치 간격을 넣지 않는다. `assemblies/`는 `plates/`를 직접 배치하지 않고 `fabrications/`와 `vitamins/`만 배치한다.
+`parts/`는 인터페이스 치수를 NopSCADlib 접근자로 읽고 하드코딩하지 않는다. `assemblies/`는 `parts/`와 `vitamins/`를 배치한다. 옛 `plates/`·`fabrications/` 2D 절단 분리는 쓰지 않는다(NopSCADlib에 없는 구조).
 
 ### S-10 (MUST) 같은 스키마의 2D 프로파일 변형은 타입 배열로 통합한다
 
@@ -188,7 +184,7 @@ module link_2d(type) {
     // ...
 }
 
-// plates/links.scad
+// parts/links.scad
 //                name          length             width       bolt_diameter       profile_width_ratio
 lower_link_type = ["lower_link", lower_link_length, link_width, main_bolt_diameter, 1.0];
 upper_link_type = ["upper_link", upper_link_length, link_width, main_bolt_diameter, 1.0];
@@ -381,11 +377,11 @@ echo(belt_center_distance = gt2_center_distance(driver_teeth, driven_teeth));
 파일 최상단 주석은 먼저 영어 문단으로 파일의 역할과 계층을 설명하고, 바로 뒤에 한국어 요약을 붙인다. 영어 설명은 외부 라이브러리·툴과 함께 읽히는 파일 헤더 역할을 하고, 한국어 요약은 프로젝트 내부 의사결정을 빠르게 확인하기 위한 것이다.
 
 ```scad
-// fabrications/link_stacks.scad - Builds 3D sandwich links from 2D cut profiles.
-// The layer spacing represents the physical plate stack used to increase bending stiffness without machining depth.
+// parts/bearing_seat.scad - Bearing-seat geometry cut into / added to printed plates (NopSCADlib printed-part style).
+// Dimensions come from a NopSCADlib ball-bearing type so the seat tracks the bought bearing, not a hardcoded number.
 //
-// 2D 절단 프로파일을 판재 적층(plate stack)으로 3D 제작 부품화한다.
-// 절삭 깊이 없이 굽힘 강성(bending stiffness)을 높이기 위해 판재 사이 간격을 실제 조립 구조로 표현한다.
+// 베어링을 앉히기 위해 프린트 판재에 깎거나(음형) 덧대는(양형) 제작 형상이다.
+// 치수는 NopSCADlib 베어링 타입에서 접근자로 읽어 하드코딩을 피한다.
 ```
 
 ### C-4 (MUST) 모듈 내부 주석은 한국어로 쓰고, 기계 원리를 설명한다
@@ -393,10 +389,9 @@ echo(belt_center_distance = gt2_center_distance(driver_teeth, driven_teeth));
 모듈 내부 주석은 한국어를 사용한다. 기계공학과 관련된 전문 용어는 반드시 `한국어(영어)` 형식으로 병기하고, 단순 명칭만 적지 말고 그 구조가 어떤 원리로 쓰이는지 설명한다.
 
 ```scad
-// 평행사변형 링크(parallelogram linkage)가 하부 링크와 같은 각도로 회전해 말단판(end plate)의 수평 자세를 유지한다.
-translate([0, coupler_offset, 0])
-    rotate(lower_angle)
-        link_stack(coupler_link_type, sheet_thickness, stack_layers);
+// 외륜 림(outer-race rim)만 단차로 물어, 회전하는 내륜(inner race)과 실드를 건드리지 않는다.
+translate(ac_driven_axis_center)
+    bearing_seat_pocket(ac_driven_axis_ball_bearing_type, bore_depth = ac_plate_thickness, from_top = true);
 ```
 
 ### C-5 (SHOULD) 리팩터링 주석은 절보다 구(phrase)를 우선한다
@@ -475,7 +470,7 @@ NopSCADlib처럼 타입 배열, 접근자 함수, 모듈을 이미 제공하는 
 4. 인접 부품과의 인터페이스 치수·공차를 먼저 파라미터로 정리한다
 5. 파생 치수를 함수로 분리한다
 6. 2D 단면 → 압출 가능한지 먼저 검토한다
-7. `plates/`에는 2D 프로파일만 두고, 압출·적층은 `fabrications/`로 분리한다 (S-9)
+7. 제작 부품은 `parts/`에 NopSCADlib printed/ 스타일로 두고, 구입 부품은 `vitamins/`에 둔다 (S-9)
 8. 같은 스키마의 반복 2D 프로파일이면 타입 배열과 접근자 함수로 통합한다 (S-10, T-1, T-2)
 9. 이름을 확정한 뒤 모듈을 구현한다
 10. 반복 형상은 즉시 모듈화하지 말고 S-5 게이트를 검사한다
@@ -493,7 +488,7 @@ NopSCADlib처럼 타입 배열, 접근자 함수, 모듈을 이미 제공하는 
 - [ ] 매직 넘버 없이 공차·치수가 명명 파라미터로 분리됐는가? (S-3)
 - [ ] vitamin 성격의 부품을 만들기 전에 NopSCADlib 존재 여부를 확인했는가? (L-2)
 - [ ] NopSCADlib 제공 부품의 치수를 숫자로 복사하지 않고 접근자로 읽는가? (L-3)
-- [ ] 2D 프로파일, 제작 부품, 조립체 계층이 `plates/`, `fabrications/`, `assemblies/`로 분리됐는가? (S-9)
+- [ ] 부품·vitamin·조립체 계층이 `parts/`, `vitamins/`, `assemblies/`로 분리됐는가? (S-9)
 - [ ] 타입 배열을 직접 인덱싱하지 않고 접근자 함수로만 읽는가? (T-1, T-2)
 - [ ] 같은 스키마의 반복 2D 프로파일을 개별 파일로 늘리지 않고 타입 배열로 통합했는가? (S-10)
 - [ ] 타입 배열의 주석, 접근자 함수, 타입 목록, 테스트가 함께 갱신됐는가? (T-4)
