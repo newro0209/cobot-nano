@@ -7,7 +7,7 @@
 include <../config.scad>
 use <NopSCADLib/vitamins/ball_bearings.scad>
 use <upper_arm.scad>
-use <../plates/bearing_inner_race_boss.scad>
+use <../plates/ball_bearing_inner_race_boss.scad>
 
 function forearm_length() = MAX_REACH - upper_arm_length();
 function forearm_plate_width() = 24;
@@ -73,7 +73,7 @@ module forearm_plate() {
     linear_extrude(forearm_plate_thickness())
         fa_2d();
     // 근위 피벗 보스
-    translate([0, 0, forearm_plate_thickness()]) bearing_inner_race_boss(BB608, forearm_plate_proximal_boss_height());
+    translate([0, 0, forearm_plate_thickness()]) bb_inner_race_boss(BB608, forearm_plate_proximal_boss_height());
 }
 
 forearm_plate();

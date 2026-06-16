@@ -7,11 +7,11 @@
 
 include <../config.scad>
 use <NopSCADLib/vitamins/ball_bearings.scad>
-use <../plates/bearing_inner_race_boss.scad>
+use <../plates/bb_inner_race_boss.scad>
 
 function upper_arm_length() = MAX_REACH * 0.55;
 function upper_arm_plate_width() = 32;
-function upper_arm_plate_thickness() = bb_width(BB608) + bearing_shoulder_thickness;
+function upper_arm_plate_thickness() = bb_width(BB608) + seat_shoulder_thickness;
 
 module ua_2d() {
     length            = upper_arm_length();
@@ -62,7 +62,7 @@ module upper_arm_plate() {
             ua_2d();
 
         // 근위 베어링 시트 포켓(bearing seat pocket) — 외륜(outer race) 반경 구속.
-        translate([0, 0, bearing_shoulder_thickness])
+        translate([0, 0, seat_shoulder_thickness])
             cylinder(h = bb_width(BB608) + boolean_epsilon, d = bb_diameter(BB608) + bearing_clearance);
 
         // 원위 베어링 시트 포켓(bearing seat pocket)
@@ -71,7 +71,7 @@ module upper_arm_plate() {
     }
 }
 
-ua_j2_bearing_center_z = bearing_shoulder_thickness + bb_width(BB608) / 2;
+ua_j2_bearing_center_z = seat_shoulder_thickness + bb_width(BB608) / 2;
 ua_j3_bearing_center_z = upper_arm_plate_thickness() - bb_width(BB608) / 2;
 
 upper_arm_plate();

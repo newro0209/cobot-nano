@@ -48,6 +48,8 @@ git clone https://github.com/nophead/NopSCADlib.git \
   "$HOME/Documents/OpenSCAD/libraries/NopSCADlib"
 ```
 
+**이 머신 실제 설치 경로:** `C:\Program Files\OpenSCAD\libraries\NopSCADlib`
+
 ## 핵심 설계 규약
 
 ### plates/ 파트 규약 (MUST)

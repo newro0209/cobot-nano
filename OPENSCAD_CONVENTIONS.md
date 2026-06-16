@@ -46,7 +46,7 @@ OpenSCAD 관례에 따라 모듈·함수·변수는 `snake_case`로 작성한다
 
 > `r`(반지름) · `d`(지름) · `h`(높이) · `w`(폭) · `t`(두께) · `od`/`id`(외경/내경) · `$fn`/`$fa`/`$fs`(해상도)
 
-그 외 임의 단축어는 금지한다.
+그 외 임의 단축어는 금지한다. 단, N-4의 부품 패밀리 접두사처럼 파일·타입 스키마가 정의한 짧은 도메인 prefix는 임의 단축어로 보지 않는다.
 
 | ❌ 금지 | ✅ 권장 |
 |---------|---------|
@@ -63,7 +63,7 @@ OpenSCAD 관례에 따라 모듈·함수·변수는 `snake_case`로 작성한다
 
 이 저장소처럼 단일 로봇을 모델링하는 프로젝트는 파일과 프로젝트가 이미 맥락을 제공하므로 설정 변수에 `design_`, `spec_`, `cobot_` 같은 반복 접두사를 붙이지 않는다. 공통 기준값은 `config.scad`에 두고, 특정 부품 패밀리의 기준값과 타입 배열은 해당 plural 파일에 둔다.
 
-단, NopSCADlib와 로컬 타입 배열의 접근자 함수는 T-2에 따라 `prefix_property(type)` 형식을 유지한다.
+단, NopSCADlib와 로컬 타입 배열의 접근자 함수는 T-2에 따라 `prefix_property(type)` 형식을 유지한다. 여러 파일이 같은 부품 패밀리의 공통 기준값을 include해 공유하는 경우에도 NopSCADlib처럼 짧고 안정적인 패밀리 prefix를 쓴다. 예를 들어 `arm_carriage_plate_base.scad`가 제공하는 전역 치수·좌표는 긴 `arm_carriage_*` 대신 `ac_*`를 사용한다.
 
 ```scad
 // config.scad
@@ -73,6 +73,11 @@ main_bolt_diameter = 5;
 // plates/links.scad
 lower_link_length = 200;
 upper_link_length = lower_link_length * upper_link_length_ratio;
+
+// parts/arm_carriage_plate_base.scad
+ac_leadnut_type = LSN8x2;
+ac_motor_center = [0, 0];
+ac_thickness = bb_width(ac_shoulder_joint_bearing_type) + seat_shoulder_thickness;
 ```
 
 ---
