@@ -7,6 +7,7 @@
 // 아래 Z 높이들은 각 축의 실제 축방향 스택업(axial stack-up)이며, 그 정합은 하단 assert로 검증한다.
 
 show_hardware = true;
+show_labels = true;
 ac_exploded = 0; // [0:0.05:1]
 
 include <../parts/arm_carriage_plate_base.scad>
@@ -18,8 +19,11 @@ use <NopSCADlib/vitamins/screw.scad>
 use <NopSCADlib/vitamins/nut.scad>
 use <NopSCADlib/vitamins/washer.scad>
 use <NopSCADlib/vitamins/linear_bearing.scad>
+use <annotations.scad>
+use <../parts/j2_hub.scad>
 
 ac_explode_distance = 24;
+ac_bloom_gain       = 0.9;   // exploded bloom — 원점(0점)에서 거리비례로 부품을 밀어내는 배수(멀수록 더 벌어짐)
 
 // 스페이서 높이(spacer height) — 베어링 내륜과 인접 면 사이 틈에서 와셔 두께를 뺀 나머지(음수면 0).
 function spacer_height(gap, washer_type) = max(0, gap - washer_thickness(washer_type));
@@ -120,16 +124,17 @@ assert(ac_j2_idler_upper_gap >= washer_thickness(ac_j2_idler_washer_type),
 assert(ac_j2_idler_lower_gap >= washer_thickness(ac_j2_idler_washer_type),
        "J2 아이들러 하부에는 와셔 공간이 필요하다");
 
-// 평면 좌표 p와 높이 z로 자식(children)을 배치한다 — [c.x, c.y, z] 반복을 줄인다.
+// 평면 좌표 p와 높이 z로 자식(children)을 배치한다. exploded 시 원점(0점)에서 거리비례로 밀어내 멀수록 더 벌어진다.
 module at_xy(p, z = 0) {
-    translate([p.x, p.y, z])
+    explode = is_undef($explode) ? 0 : $explode;
+    translate([p.x, p.y, z] * (1 + ac_bloom_gain * explode))
         children();
 }
 
 // J2 종동축 프린트 부싱(printed bushing) — 숄더 볼트 둘레, 풀리와 베어링 내륜 사이 동축 링.
 module ac_axis_spacer(height) {
     if (height >= min_printed_feature)   // 인쇄 가능한 두께만 부싱으로 출력, 더 얇으면 와셔가 흡수
-        color(grey(80))
+        color(label_shade(label_colour("printed"), 0.70))   // 3D 프린트 출력물(블루 톤온톤)
             difference() {
                 cylinder(h = height, r = ac_driven_axis_spacer_outer_radius);
                 translate_z(-eps)
@@ -140,7 +145,7 @@ module ac_axis_spacer(height) {
 // J2 아이들러 프린트 부싱(printed bushing) — 와셔 외경 둘레, 풀리와 판 사이 동축 링.
 module ac_idler_spacer(height) {
     if (height >= min_printed_feature)   // 인쇄 가능한 두께만 부싱으로 출력, 더 얇으면 와셔가 흡수
-        color(grey(80))
+        color(label_shade(label_colour("printed"), 0.85))   // 3D 프린트 출력물(블루 톤온톤)
             difference() {
                 cylinder(h = height, r = ac_j2_idler_spacer_outer_radius);
                 translate_z(-eps)
@@ -150,8 +155,15 @@ module ac_idler_spacer(height) {
 
 module arm_carriage_assembly() {
     let($explode = ac_exploded) {
-        translate_z(ac_housing_z) arm_carriage_housing();
-        translate_z(ac_plate_z)   arm_carriage_plate();
+        // 파츠 색도 라벨과 같은 기능별 톤온톤 — 3D 프린트 출력물은 블루 계열, 부품마다 다른 톤(링크인 상판이 가장 진함).
+        color(label_shade(label_colour("printed"), 0.45)) translate_z(ac_housing_z) arm_carriage_housing();
+        color(label_shade(label_colour("printed"), 0.00)) translate_z(ac_plate_z)   arm_carriage_plate();
+
+        // J2 상완 허브(upper-arm hub) — 상판 위·하우징 아래로 상완을 연결. J2 회전 출력에 물려 돈다.
+        color(label_shade(label_colour("printed"), 0.25)) {
+            at_xy(ac_driven_axis_center, ac_plate_top_z) j2_hub();
+            at_xy(ac_driven_axis_center, ac_housing_z) rotate([180, 0, 0]) j2_hub();
+        }
 
         if (show_hardware) {
             // ── 판 사이 스탠드오프(hex standoffs)와 상·하 체결 스크류 ──────────
@@ -183,7 +195,7 @@ module arm_carriage_assembly() {
                         translate_z(ac_motor_driven_stack_z) {
                             // 샤프트 방향으로 내려가는 스크류·풀리 스택 — 풀리 간섭 검증.
                             NEMA_screws(ac_motor_type, M3_cap_screw);
-                            pulley(ac_motor_pulley_type);
+                            pulley(ac_motor_pulley_type, colour = label_shade(label_colour("transmission"), 0.2));
                         }
 
             if (ac_exploded == 0)
@@ -251,7 +263,7 @@ module arm_carriage_assembly() {
             explode([0, 0, -ac_explode_distance * 2])
                 at_xy(ac_driven_axis_center, ac_driven_axis_pulley_mount_z)
                     rotate([180, 0, 0])
-                        pulley(ac_driven_axis_pulley_type);
+                        pulley(ac_driven_axis_pulley_type, colour = label_shade(label_colour("transmission"), 0.5));
 
             // 상부 스페이서/와셔 — 상부 베어링 내륜과 풀리 사이 간격을 채운다.
             at_xy(ac_driven_axis_center, ac_driven_axis_pulley_top_z) {
@@ -271,10 +283,11 @@ module arm_carriage_assembly() {
             explode([0, 0, -ac_explode_distance])
                 at_xy(ac_driven_axis_center, ac_housing_z - washer_thickness(ac_driven_axis_washer_type))
                     washer(ac_driven_axis_washer_type);
+            // nyloc 칼라가 아래(바깥)를 향하도록 뒤집어 베어링 면이 와셔에 닿게 한다.
             explode([0, 0, -ac_explode_distance])
-                at_xy(ac_driven_axis_center,
-                      ac_housing_z - washer_thickness(ac_driven_axis_washer_type) - nut_thickness(ac_driven_axis_locknut_type, nyloc = true))
-                    nut(ac_driven_axis_locknut_type, nyloc = true);
+                at_xy(ac_driven_axis_center, ac_housing_z - washer_thickness(ac_driven_axis_washer_type))
+                    rotate([180, 0, 0])
+                        nut(ac_driven_axis_locknut_type, nyloc = true);
 
             // ── J2 아이들러(idler) — 대칭 2개, 슬롯 조절 + 하우징 하부 락너트 ──
             for (idler_center = ac_j2_idler_centers) {
@@ -294,7 +307,7 @@ module arm_carriage_assembly() {
                 explode([0, 0, -ac_explode_distance * 2])
                     at_xy(idler_center, ac_j2_idler_pulley_mount_z)
                         rotate([180, 0, 0])
-                            pulley(ac_j2_idler_pulley_type);
+                            pulley(ac_j2_idler_pulley_type, colour = label_shade(label_colour("transmission"), 0.8));
 
                 // 하부 스페이서 — 하우징과 풀리 베어링 내륜 사이를 지지.
                 at_xy(idler_center, ac_housing_top_z) {
@@ -307,13 +320,70 @@ module arm_carriage_assembly() {
                 explode([0, 0, -ac_explode_distance])
                     at_xy(idler_center, ac_housing_z - washer_thickness(ac_j2_idler_washer_type))
                         washer(ac_j2_idler_washer_type);
+                // nyloc 칼라가 아래(바깥)를 향하도록 뒤집어 베어링 면이 와셔에 닿게 한다.
                 explode([0, 0, -ac_explode_distance])
-                    at_xy(idler_center,
-                          ac_housing_z - washer_thickness(ac_j2_idler_washer_type) - nut_thickness(ac_j2_idler_nut_type, nyloc = true))
-                        nut(ac_j2_idler_nut_type, nyloc = true);
+                    at_xy(idler_center, ac_housing_z - washer_thickness(ac_j2_idler_washer_type))
+                        rotate([180, 0, 0])
+                            nut(ac_j2_idler_nut_type, nyloc = true);
             }
         }
     }
 }
 
 arm_carriage_assembly();
+
+// 기능(function)별 색 — 부품 종류가 아니라 역할로 묶는다. 3D 프린트 출력물은 블루 계열.
+// emphasis(축·링크)는 색과 직교한 강조(굵은 지시선·볼드)로 따로 표시한다.
+function label_colour(group) =
+    group == "printed"      ? [0.15, 0.42, 0.82] :  // 파랑 — 3D 프린트 출력물(판·하우징·부싱·허브)
+    group == "bearing"      ? [0.12, 0.55, 0.32] :  // 초록 — 베어링(회전 지지)
+    group == "transmission" ? [0.88, 0.50, 0.12] :  // 주황 — 동력 전달(풀리·벨트)
+    group == "motor"        ? [0.74, 0.20, 0.18] :  // 빨강 — 액추에이터(모터)
+    group == "leadnut"      ? [0.50, 0.26, 0.66] :  // 보라 — 리드넛(나사 이송)
+    group == "fastener"     ? [0.42, 0.44, 0.48] :  // 회색 — 체결(스크류·너트·와셔·스탠드오프·축볼트)
+                              [0, 0, 0];
+
+// 부품 라벨 데이터 — [텍스트, 부품 점, 지시선 벡터, 그룹, 강조]. 강조(emphasis)는 축·링크 같은 중요한 요소.
+// 좌표는 비분해(base) 기준. $preview에서 show_labels로 토글한다.
+ac_part_labels = [
+    ["Carriage plate (J2 link)", [-24, 30, ac_plate_top_z],   [-4, 10, 10],   "printed", true ],
+    ["Housing",                  [-32, -22, ac_housing_z],    [-10, -8, -10], "printed", false],
+    ["M3x20 standoff",           [ac_standoff_centers[0].x, ac_standoff_centers[0].y, (ac_plate_z + ac_housing_top_z) / 2], [-12, 8, 0], "fastener", false],
+    ["M3x16 screw",              [ac_standoff_centers[0].x, ac_standoff_centers[0].y, ac_plate_top_z + 3], [-8, 14, 12], "fastener", false],
+
+    ["NEMA17 motor",             [0, 0, ac_plate_top_z + 32],  [-26, 6, 8],    "motor", false],
+    ["GT2x20 motor pulley",      [0, -8, ac_j2_belt_center_z], [-18, -16, -2], "transmission", false],
+    ["GT2 belt",                 [ac_j2_idler_slot_center_x, ac_j2_belt_xy_keepout + 8, ac_j2_belt_center_z], [0, 18, 4], "transmission", false],
+
+    ["M6 shoulder bolt (J2 axis)", [ac_driven_axis_center.x, 0, ac_plate_top_z + 8], [10, 13, 16], "fastener", true ],
+    ["GT2x60 driven pulley",     [ac_driven_axis_center.x, -8, ac_driven_axis_pulley_mount_z], [14, -16, -4], "transmission", false],
+    ["BB608 x2",                 [ac_driven_axis_center.x + 11, 0, ac_plate_z], [18, 6, 2], "bearing", false],
+    ["M8 washer",                [ac_driven_axis_center.x, 0, ac_plate_top_z + 2], [20, -4, 6], "fastener", false],
+    ["Driven bushing",           [ac_driven_axis_center.x, 0, ac_housing_driven_axis_bearing_top_z + 2], [18, -8, -8], "printed", false],
+    ["M6 nyloc",                 [ac_driven_axis_center.x, 0, ac_housing_z - 6], [14, -6, -10], "fastener", false],
+
+    ["M5 idler axle (J2 idler axis)", [ac_j2_upper_idler_center.x, ac_j2_upper_idler_center.y, ac_plate_top_z + 4], [8, 19, 16], "fastener", true ],
+    ["GT2x20 idler (5mm bearing)", [ac_j2_upper_idler_center.x, ac_j2_upper_idler_center.y, ac_j2_idler_pulley_mount_z], [-2, 20, 4], "transmission", false],
+    ["M5 washer",                [ac_j2_upper_idler_center.x, ac_j2_upper_idler_center.y, ac_plate_top_z + 1], [14, 10, 8], "fastener", false],
+    ["Idler bushing",            [ac_j2_upper_idler_center.x, ac_j2_upper_idler_center.y, ac_j2_idler_pulley_top_z + 1], [-12, 14, 6], "printed", false],
+    ["M5 nyloc",                 [ac_j2_upper_idler_center.x, ac_j2_upper_idler_center.y, ac_housing_z - 6], [8, 12, -10], "fastener", false],
+
+    ["LSN8x2 leadnut (J1 Z axis)", [ac_leadnut_center.x, 0, ac_plate_z], [-16, 9, 6], "leadnut", true ],
+    ["M3 nut",                   [ac_leadnut_center.x, 0, ac_plate_top_z + 2], [-12, 13, 11], "fastener", false],
+    ["LM8UU",                    [ac_left_linear_bearing_center.x, ac_left_linear_bearing_center.y, ac_linear_bearing_center_z], [4, 14, 2], "bearing", false],
+
+    ["J2 hub (upper-arm mount)", [ac_driven_axis_center.x, 0, ac_plate_top_z + 8], [22, 9, 14], "printed", true ],
+];
+
+label_lead_scale = 1.8;   // 지시선 길이 배수 — 라벨을 부품에서 더 멀리 뺀다.
+
+// 그룹(기능) 안에서 부품마다 다른 톤을 줘 톤온톤을 확실히 하고 같은 색이 겹치지 않게 한다.
+if (show_labels)
+    for (i = [0 : len(ac_part_labels) - 1])
+        let(spec    = ac_part_labels[i],
+            group   = spec[3],
+            members = [for (j = [0 : len(ac_part_labels) - 1]) if (ac_part_labels[j][3] == group) j],
+            order   = search([i], members)[0],
+            tone    = spec[4] ? 0 : (len(members) <= 1 ? 0.5 : order / (len(members) - 1)),
+            shade   = label_shade(label_colour(group), tone))
+            part_label(spec[0], spec[1], spec[2] * label_lead_scale, colour = shade, emphasis = spec[4]);
