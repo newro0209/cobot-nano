@@ -8,9 +8,6 @@ include <arm_carriage_plate_base.scad>
 use <../vitamins/ball_bearings.scad>
 
 module arm_carriage_plate() {
-    assert(ac_thickness >= 2 * seat_shoulder_thickness,
-           "ac_thickness는 중첩 리세스의 2단 시트 숄더 이상이어야 한다");
-
     difference() {
         arm_carriage_plate_base();
 
@@ -32,10 +29,15 @@ module arm_carriage_plate() {
         }
 
         translate(ac_leadnut_center) {
-            // J1 리드넛 플랜지 오프셋 리세스(leadnut flange offset recess) — 아래쪽 장착 플랜지(flange)의 섕크(shank) 간섭 공간.
+            // J1 리드넛 플랜지 리세스(leadnut flange recess) — 하부 장착 플랜지(flange)가 판 안으로 안착하는 포켓.
             translate([0, 0, -boolean_epsilon])
-                cylinder(h = ac_leadnut_flange_offset_recess_depth + boolean_epsilon,
-                         r = ac_leadnut_flange_offset_recess_radius);
+                cylinder(h = ac_leadnut_flange_recess_depth + boolean_epsilon,
+                         r = ac_leadnut_flange_recess_radius);
+
+            // J1 리드넛 섕크 리세스(leadnut shank recess) — 플랜지 위 오프셋(offset) 구간의 원통부 간섭 공간.
+            translate([0, 0, ac_leadnut_flange_recess_depth])
+                cylinder(h = ac_leadnut_shank_recess_depth + boolean_epsilon,
+                         r = ac_leadnut_shank_recess_radius);
 
             // J1 리드넛 스크류 클리어런스 홀(screw clearance holes) — NopSCADlib 플랜지 홀 위치와 같은 체결 경로.
             leadnut_screw_positions(ac_leadnut_type)
@@ -43,9 +45,23 @@ module arm_carriage_plate() {
                     cylinder(h = ac_thickness + boolean_epsilon * 2, r = ac_leadnut_screw_clearance_radius);
         }
 
-        // J2 종동 베어링 시트(driven bearing seat) — 벨트 장력(belt tension)을 캐리지 윗면의 외륜 지지부로 전달.
-        translate(ac_shoulder_bearing_center)
-            bb_seat_pocket(ac_shoulder_joint_bearing_type, bore_depth = ac_thickness, from_top = true);
+        // J1 선형 베어링 리세스(linear bearing recess) — 두 판 사이의 LM8UU 상단이 하부에서 안착한다.
+        for (bearing_center = [ac_left_linear_bearing_center, ac_right_linear_bearing_center])
+            translate(bearing_center)
+                translate([0, 0, -boolean_epsilon])
+                    cylinder(h = ac_linear_bearing_recess_depth + boolean_epsilon,
+                             r = ac_linear_bearing_recess_radius);
+
+        // J2 종동축 베어링 시트(driven axis bearing seat) — 선형 링크(linear link) 끝단에서 외륜을 지지한다.
+        translate(ac_driven_axis_center)
+            bb_seat_pocket(ac_driven_axis_ball_bearing_type, bore_depth = ac_thickness, from_top = true);
+
+        // 스탠드오프 스크류 클리어런스 홀(standoff screw clearance holes) — 상부 스크류가 M3 스탠드오프로 내려가는 경로.
+        for (standoff_center = ac_standoff_centers)
+            translate(standoff_center)
+                translate([0, 0, -boolean_epsilon])
+                    cylinder(h = ac_thickness + boolean_epsilon * 2,
+                             r = ac_standoff_screw_clearance_radius);
     }
 }
 

@@ -9,6 +9,7 @@ include <NopSCADlib/global_defs.scad>
 include <NopSCADlib/vitamins/ball_bearings.scad>
 include <NopSCADlib/vitamins/linear_bearings.scad>
 include <NopSCADlib/vitamins/leadnuts.scad>
+include <NopSCADlib/vitamins/pillars.scad>
 include <NopSCADlib/vitamins/stepper_motors.scad>
 include <NopSCADlib/vitamins/screws.scad>
 include <NopSCADlib/vitamins/pulleys.scad>
@@ -20,7 +21,7 @@ boolean_epsilon = 0.01;  // 부울 연산(boolean operation)에서 작은 간격
 explode_distance = 0.1; // 조립 exploded view에서 부품 간의 간격.
 seat_shoulder_thickness = 2; // 시트 숄더(seat shoulder) — 포켓·리세스 바닥에 남기는 축방향 지지 두께.
 plate_thickness = 6; // 링크 플레이트 두께(link plate thickness) — 베어링 시트 포켓과 외륜 숄더를 포함하도록 충분히 두껍게 한다.
-component_margin = 6; // 조립에서 부품 간의 최소 간격 — 조립 편차와 시각적 명확성을 위해 충분히 크게 한다.
+component_margin = 12; // 조립에서 부품 간의 최소 간격 — 조립 편차와 시각적 명확성을 위해 충분히 크게 한다.
 
 $fn = 56;
 
@@ -33,6 +34,6 @@ BB6805 = ["6805", 25, 37, 7, "black", 1.5, 1.6, 0, 0];
 //                     code          desc          head    ds  dk   k    socket_depth socket_af max_thread washer     nut     tap_radius     clearance_r thread_d
 M6_shoulder_screw = ["M6_shoulder", "M6 shoulder", hs_cap, 8,  13,  5.5, 3,           4,        9.5,       M8_washer, M6_nut, M6_tap_radius, 4.0,        6];
 
-// GT2x60: NopSCADlib에 없는 로컬 타입. od = 2*(60*2/(2*PI) - belt_pitch_offset(GT2x6)) = 37.7mm.
-// 보어(bore) 12mm = BB6201 내경(bore)에 맞춰 어깨 축(shoulder shaft)에 직접 압입 가능.
-GT2x60_pulley = ["GT2x60_pulley", "GT2", 60, 37.7, GT2x6, 7, 18, 8, 5, 41, 1.0, 6, 3.5, M3_grub_screw, 2];
+// GT2x60x8: NopSCADlib에 없는 로컬 타입. od = 2*(60*2/(2*PI) - belt_pitch_offset(GT2x6)) = 37.7mm.
+// 보어(bore) 8mm = BB608 내경(bore)에 맞춰 J2 종동축(driven axis)에 장착한다.
+GT2x60x8_pulley = ["GT2x60x8_pulley", "GT2", 60, 37.7, GT2x6, 7, 18, 8, 8, 41, 1.0, 6, 3.5, M3_grub_screw, 2];

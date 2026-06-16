@@ -77,7 +77,7 @@ upper_link_length = lower_link_length * upper_link_length_ratio;
 // parts/arm_carriage_plate_base.scad
 ac_leadnut_type = LSN8x2;
 ac_motor_center = [0, 0];
-ac_thickness = bb_width(ac_shoulder_joint_bearing_type) + seat_shoulder_thickness;
+ac_thickness = bb_width(ac_driven_axis_ball_bearing_type) + seat_shoulder_thickness;
 ```
 
 ---
