@@ -126,9 +126,9 @@ module at_xy(p, z = 0) {
         children();
 }
 
-// J2 종동축 스페이서(driven axis spacer) — 숄더 볼트 둘레, 풀리와 베어링 내륜 사이 동축 링.
+// J2 종동축 프린트 부싱(printed bushing) — 숄더 볼트 둘레, 풀리와 베어링 내륜 사이 동축 링.
 module ac_axis_spacer(height) {
-    if (height > eps)
+    if (height >= min_printed_feature)   // 인쇄 가능한 두께만 부싱으로 출력, 더 얇으면 와셔가 흡수
         color(grey(80))
             difference() {
                 cylinder(h = height, r = ac_driven_axis_spacer_outer_radius);
@@ -137,9 +137,9 @@ module ac_axis_spacer(height) {
             }
 }
 
-// J2 아이들러 스페이서(idler spacer) — 와셔 외경 둘레, 풀리와 판 사이 동축 링.
+// J2 아이들러 프린트 부싱(printed bushing) — 와셔 외경 둘레, 풀리와 판 사이 동축 링.
 module ac_idler_spacer(height) {
-    if (height > eps)
+    if (height >= min_printed_feature)   // 인쇄 가능한 두께만 부싱으로 출력, 더 얇으면 와셔가 흡수
         color(grey(80))
             difference() {
                 cylinder(h = height, r = ac_j2_idler_spacer_outer_radius);

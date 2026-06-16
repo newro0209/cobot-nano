@@ -24,11 +24,11 @@
 | 스크류 | Idler axle screw | M5 cap, 길이 **50mm** | 2 | 아이들러 축(슬롯 장력 조절) |
 | 너트 | Idler locknut | M5 nyloc nut | 2 | 아이들러 위치 고정 |
 | 와셔 | Idler washer | M5 washer | 8 | 아이들러 상하 스택 |
-| 스페이서 | Idler spacer | ID 5.3 / OD 10mm, 높이 상 **7.02** · 하 **2.48mm** | 4 | 아이들러 위치 부싱(상하 각 1개) |
+| 부싱 | Idler bushing (printed) | ID 5.3 / OD 10mm, 높이 상 **7.02** · 하 **2.48mm** | 4 | 아이들러 위치(상하 각 1개), 3D 프린트 |
 | 스크류 | Driven axis shoulder bolt | `M6_shoulder_screw` (8mm shoulder), 길이 **50mm** | 1 | J2 종동축 고정축 |
 | 너트 | Driven axis locknut | M6 nyloc nut | 1 | 하우징 하부 체결 |
 | 와셔 | Driven axis washer | M8 washer | 4 | 숄더 볼트 스택 |
-| 스페이서 | Driven axis spacer | ID 8.5 / OD 12mm, 높이 상 **0.17** · 하 **3.64mm** | 2 | 풀리와 베어링 내륜 사이 |
+| 부싱 | Driven axis bushing (printed) | ID 8.5 / OD 12mm, 높이 하 **3.64mm** (상 0.17mm는 와셔로 흡수, 생략) | 1 | 풀리와 베어링 내륜 사이, 3D 프린트 |
 
 ## 주요 치수 (CAD 파생, mm)
 
@@ -40,11 +40,11 @@
 | J2 링크 길이 (모터축↔종동축) | 100 | `ac_j2_linear_link_length` |
 | 아이들러 중심 / 슬롯 이동 | x=50, y=±13 / 24 | `ac_j2_idler_center_x/y`, `ac_j2_idler_slot_travel` |
 
-> 스크류 길이는 NopSCADlib `screw_longer_than/shorter_than`로 표준 규격(off-the-shelf)에 스냅했습니다(스탠드오프는 바닥나지 않게 snap-down, 너트/nyloc 체결은 snap-up). 스페이서 높이(종동 0.17 / 3.64, 아이들러 7.02 / 2.48)는 `eps` 항을 포함한 CAD 파생값이라 반올림했으니 구매·가공 전 콘솔 echo로 재확인하세요.
+> 스크류 길이는 NopSCADlib `screw_longer_than/shorter_than`로 표준 규격(off-the-shelf)에 스냅했습니다(스탠드오프는 바닥나지 않게 snap-down, 너트/nyloc 체결은 snap-up). 부싱은 3D 프린트하며, `min_printed_feature`(0.8mm)보다 얇은 것은 인쇄하지 않고 와셔로 흡수합니다. 부싱 높이(종동 3.64, 아이들러 7.02 / 2.48)는 `eps` 항을 포함한 CAD 파생값이라 반올림했으니 가공 전 콘솔 echo로 재확인하세요.
 
 ## Notes
 
 - 아이들러 위치는 `ac_j2_idler_center_x`로 조절하고, 슬롯 이동 범위는 `ac_j2_idler_slot_travel`로 관리합니다.
 - 스탠드오프는 `ac_j2_belt_xy_keepout` 밖에 있어야 하며, 이 조건은 `arm_carriage_plate_base.scad`의 assert로 검증합니다.
-- 아이들러는 5mm 보어 베어링 일체형(integral bearing) GT2 20T 아이들러로, M5 축에서 자유 회전합니다(솔리드 풀리를 죄던 옛 방식 교체). 스페이서는 축에 끼워 아이들러를 벨트 높이에 두는 위치 부싱입니다.
+- 아이들러는 5mm 보어 베어링 일체형(integral bearing) GT2 20T 아이들러로, M5 축에서 자유 회전합니다(솔리드 풀리를 죄던 옛 방식 교체). 부싱은 축에 끼워 아이들러를 벨트 높이에 두는 3D 프린트 위치 부싱입니다.
 - `GT2x60x8_pulley`·`GT2x20_idler_5mm`는 `vitamins/pulleys.scad`, `M6_shoulder_screw`는 `vitamins/screws.scad`에 정의된 로컬 vitamin 타입입니다(NopSCADlib 패밀리를 미러링).

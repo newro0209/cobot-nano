@@ -17,9 +17,10 @@ include <vitamins/screws.scad>   // 로컬 M6_shoulder_screw (+ NopSCADlib screw
 include <vitamins/pulleys.scad>  // 로컬 GT2x60x8_pulley (+ NopSCADlib pulley 패밀리)
 
 // 제조 공차(manufacturing allowance) — 가공/프린트 방식이 바뀌면 여기 한 곳만 고친다.
-clearance         = 0.1;  // 부품 간 일반 끼움 간격(general fit) — 간섭(interference) 방지
-bearing_clearance = 0.1;  // 베어링 시트(bearing seat)와 베어링 사이 — 조립 편차·윤활유 수용
-shaft_clearance   = 0.5;  // 샤프트 관통홀(shaft through-hole) — 오차·회전축 조립 편차 흡수
+clearance           = 0.1;  // 부품 간 일반 끼움 간격(general fit) — 간섭(interference) 방지
+bearing_clearance   = 0.1;  // 베어링 시트(bearing seat)와 베어링 사이 — 조립 편차·윤활유 수용
+shaft_clearance     = 0.5;  // 샤프트 관통홀(shaft through-hole) — 오차·회전축 조립 편차 흡수
+min_printed_feature = 0.8;  // FDM 최소 인쇄 두께(≈2 레이어) — 이보다 얇은 부싱/스페이서는 인쇄 대신 와셔로 흡수해 생략
 
 // 공유 형상 기준값(shared geometry)
 seat_shoulder_thickness = 2;   // 포켓·리세스 바닥에 남기는 축방향 지지 단차(seat shoulder)
