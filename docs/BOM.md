@@ -17,8 +17,8 @@
 | 베어링 | Ball bearing | `BB608` (8×22×7) | 2 | J2 종동축 상하 지지 |
 | 베어링 | Linear bearing | `LM8UU` | 2 | J1 가이드 로드 좌우 |
 | 리드넛 | Leadnut | `LSN8x2` | 2 | 플레이트 1개, 하우징 1개 |
-| 스탠드오프 | Female-female hex pillar | `M3x20_ff_hex_pillar` (길이 20mm) | 4 | 두 판 사이 간격 유지 |
-| 스크류 | Standoff screw set | M3 cap + washer/star washer, 길이 **16mm** | 8 | 상하 4개씩 |
+| 스탠드오프 | Female-female hex pillar | `M3x20_ff_hex_pillar` (길이 20mm) | 6 | 디스크 둘레 6점 분산 |
+| 스크류 | Standoff screw set | M3 cap + washer/star washer, 길이 **16mm** | 12 | 상하 6개씩 |
 | 스크류 | Motor screw set | M3 cap + washer/star washer | 4 | NEMA17 체결(NopSCADlib 기본 길이) |
 | 스크류 | Leadnut screw set | M3 cap + washer/star washer + nut, 길이 **12mm** | 4 | 리드넛 2개 기준 |
 | 스크류 | Idler axle screw | M5 cap, 길이 **50mm** | 2 | 아이들러 축(슬롯 장력 조절) |

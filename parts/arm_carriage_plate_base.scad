@@ -96,10 +96,15 @@ ac_standoff_j1_outer_x  = -ac_z_shaft_center_distance + ac_z_shaft_radius + comp
 ac_standoff_j1_y        = ac_motor_radius - ac_standoff_body_radius - clearance;
 ac_standoff_belt_side_x = ac_j2_idler_slot_center_x - component_margin / 2;
 ac_standoff_belt_side_y = ac_j2_idler_center_y + ac_j2_belt_xy_keepout + component_margin / 2;
+ac_standoff_disc_y      = ac_z_shaft_center_distance;  // 디스크 상하(±90°) — Z 가이드 볼트원(bolt circle)과 같은 반경
+// 6점 분산 — 두 판이 벌어지는 굽힘(splay)을 디스크 후방·상하·링크측에서 고르게 잡는다.
+// 종동축은 숄더 볼트가, 리드넛·아이들러는 각 체결 볼트가 판을 따로 죄므로 스탠드오프는 빈 둘레를 메운다.
 ac_standoff_centers = [
-    [ac_standoff_j1_outer_x,   ac_standoff_j1_y],
+    [ac_standoff_j1_outer_x,   ac_standoff_j1_y],         // 디스크 후방, 리드넛 양옆
     [ac_standoff_j1_outer_x,  -ac_standoff_j1_y],
-    [ac_standoff_belt_side_x,  ac_standoff_belt_side_y],
+    [ac_motor_center.x,        ac_standoff_disc_y],       // 디스크 상단(모터 옆)
+    [ac_motor_center.x,       -ac_standoff_disc_y],       // 디스크 하단
+    [ac_standoff_belt_side_x,  ac_standoff_belt_side_y],  // 링크/벨트 양옆
     [ac_standoff_belt_side_x, -ac_standoff_belt_side_y],
 ];
 
