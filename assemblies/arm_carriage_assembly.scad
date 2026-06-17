@@ -181,7 +181,7 @@ module ac_idler_spacer(height) {
             }
 }
 
-module arm_carriage_assembly() {
+module arm_carriage_assembly(show_hardware = show_hardware) {
     let($explode = ac_exploded) {
         // 파츠 색도 라벨과 같은 기능별 톤온톤 — 3D 프린트 출력물은 블루 계열, 부품마다 다른 톤(링크인 상판이 가장 진함).
         color(ac_col_housing) translate_z(ac_housing_z) arm_carriage_housing();

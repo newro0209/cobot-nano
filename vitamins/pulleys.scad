@@ -12,7 +12,11 @@ include <NopSCADlib/vitamins/pulleys.scad>
 // J2 종동축(driven axis) 풀리 — 60T GT2, 보어(bore) 8mm를 BB608 내경/숄더 볼트에 맞춘다.
 // 바깥 지름(outer diameter) = 2*(60*2/(2*PI) - belt_pitch_offset(GT2x6)) ≈ 37.7mm (피치원에서 벨트 두께만큼 안쪽).
 //                   code               type  teeth od    belt   bore_r flange_d hub_h bore body_d sc_w sc_z sc_r screw          flanges
-GT2x60x8_pulley = ["GT2x60x8_pulley", "GT2", 60,   37.7, GT2x6, 7,     18,      8,    8,   41,    1.0, 6,   3.5, M3_grub_screw, 2];
+GT2x60x8_pulley = ["GT2x60x8_pulley", "GT2", 60,   37.7, GT2x6, 7,     18,      8,    8,   41,    1.0, 6,   3.5,  M3_grub_screw, 2];
+
+// J1 리드스크류 종동 풀리 — 20T GT2, 보어(bore) 8mm를 T8 리드스크류에 맞춘다(모터 20T와 1:1 직결, 감속 없음).
+//                   code               type  teeth od     belt   bore_r flange_d hub_h bore body_d sc_w sc_z sc_r  screw          flanges
+GT2x20x8_pulley = ["GT2x20x8_pulley", "GT2", 20,   12.22, GT2x6, 7,     18,      7,    8,   18,    1.0, 6,   3.75, M3_grub_screw, 2];
 
 // J2 아이들러 — 5mm 보어 베어링 일체형(integral bearing) GT2 20T 토스트 아이들러. 보어(bore)=베어링 내경 5mm, M5 축에 끼워 자유 회전한다.
 // NopSCADlib GT2x20_toothed_idler(보어 4mm)를 미러링하되 보어만 5mm로 둔다(screws=0 → idler, 내장 베어링).

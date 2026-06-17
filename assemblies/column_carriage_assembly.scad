@@ -8,6 +8,10 @@
 // cc_carriage_travel(0..1)로 캐리지를 행정 위·아래로 옮긴다.
 
 cc_carriage_travel = 0.5; // [0:0.05:1]
+cc_animate_carriage = false;   // [false:true]
+show_hardware = true;          // 기성품 하드웨어 표시 — false면 출력물(단판·허브 등)만, 두 서브 조립·공유 봉에 전달
+
+cc_carriage_travel_effective = cc_animate_carriage ? (sin($t * 360) / 2) + 0.5 : cc_carriage_travel;
 
 include <../parts/base_column_plate_base.scad>   // bc_*/ac_* 기준값(축 중심·높이·홀더 타입)
 use <base_column_assembly.scad>
@@ -16,7 +20,7 @@ use <NopSCADlib/vitamins/rod.scad>
 
 // 캐리지 리프트(lift) — 기둥 내부 좌표(하단 단판 윗면 z=0)에서 캐리지 하단을 행정 위치로 올린다.
 // 행정 0 = 아래 끝(여유 bc_end_margin), 1 = 위 끝. 캐리지 하단(local) = −(스탠드오프 갭 + 판 두께).
-cc_carriage_lift = bc_end_margin + bc_travel * cc_carriage_travel + ac_standoff_gap + ac_plate_thickness;
+cc_carriage_lift = bc_end_margin + bc_travel * cc_carriage_travel_effective + ac_standoff_gap + ac_plate_thickness;
 
 // ── 공유 J1 축 스팬(shaft span) — 두 단판의 KFL·FC 홀더를 관통한다 ──
 bc_screw_bottom_z = -bc_plate_thickness - kfl_height(bc_screw_support_type);
@@ -41,14 +45,15 @@ module bc_j1_shafts() {
 
 module column_carriage_assembly() {
     // 고정 베이스 기둥(단판·KFL·FC·모터·벨트).
-    base_column_assembly();
+    base_column_assembly(show_hardware = show_hardware);
 
-    // 공유 J1 축 — 리드스크류·가이드 로드가 기둥을 관통한다.
-    bc_j1_shafts();
+    // 공유 J1 축 — 리드스크류·가이드 로드(하드웨어)가 기둥을 관통한다.
+    if (show_hardware)
+        bc_j1_shafts();
 
     // 암 캐리지 — 행정 위치로 올린다.
     translate_z(cc_carriage_lift)
-        arm_carriage_assembly();
+        arm_carriage_assembly(show_hardware = show_hardware);
 }
 
 column_carriage_assembly();

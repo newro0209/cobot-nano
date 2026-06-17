@@ -11,26 +11,9 @@ module arm_carriage_plate() {
     difference() {
         arm_carriage_plate_base();
 
-        translate(ac_motor_center) {
-            // J2 모터 스크류 클리어런스 홀(screw clearance holes) — NEMA 홀 피치(hole pitch) 기준 플랜지 체결 경로.
-            NEMA_screw_positions(ac_motor_type)
-                translate([0, 0, -eps])
-                    cylinder(h = ac_plate_thickness + eps * 2, r = M3_clearance_radius);
-
-            // J2 모터 바디 리세스(motor body recess) — 위에서 2단 시트 숄더(seat shoulder)를 남기는 플랜지 안착면.
-            translate([0, 0, ac_motor_recess_floor_z])
-                linear_extrude(height = ac_motor_recess_depth + eps)
-                    offset(delta = clearance)
-                        NEMA_outline(ac_motor_type);
-
-            // J2 센터링 보스 리세스(centering boss recess) — 가장 깊은 단도 바닥에 1단 숄더를 남기는 동축 공간.
-            translate([0, 0, ac_motor_boss_recess_floor_z])
-                cylinder(h = ac_motor_boss_recess_depth + eps, r = ac_motor_boss_recess_radius);
-
-            // J2 모터 샤프트 관통 보어(shaft through-bore) — 뒤집힌 모터 축이 보스 시트 숄더를 지나 판 아래 풀리로 내려간다.
-            translate([0, 0, -eps])
-                cylinder(h = ac_plate_thickness + eps * 2, r = NEMA_shaft_dia(ac_motor_type) / 2 + shaft_clearance / 2);
-        }
+        // J2 모터 2단 시트(motor seat) — 위에서 삽입하는 뒤집힌 모터용 음형(공유 모듈).
+        translate(ac_motor_center)
+            nema_motor_seat(ac_motor_type);
 
         translate(ac_leadnut_center) {
             // J1 리드넛 플랜지 리세스(flange recess) — 하부 장착 플랜지가 판 안으로 안착하는 포켓.

@@ -15,8 +15,9 @@ bc_travel     = 120;  // J1 캐리지 수직 행정(vertical travel) — 외부 
 bc_end_margin = 24;   // 행정 양 끝과 단판 사이 여유 — 단판 위 벨트 드라이브(belt drive) 스택 높이를 캐리지가 안 닿게 흡수(assembly assert로 검증)
 
 // ── 인터페이스 부품(interface vitamins) ───────────────────────────────────
-bc_screw_support_type = KFL08;  // 리드스크류 플랜지 베어링 블록 — 보어 8mm가 T8 리드스크류에 맞고, 회전을 반경 지지한다
-bc_rod_support_type   = FC8;    // 가이드 로드 플랜지 커플러 — 봉을 허브 멈춤나사로 죄어 플랜지에 수직으로 고정한다
+bc_screw_support_type = KFL08;      // 리드스크류 플랜지 베어링 블록 — 보어 8mm가 T8 리드스크류에 맞고, 회전을 반경 지지한다
+bc_rod_support_type   = FC8;        // 가이드 로드 플랜지 커플러 — 봉을 허브 멈춤나사로 죄어 플랜지에 수직으로 고정한다
+bc_motor_type         = NEMA17_34;  // J1 리드스크류를 벨트로 구동하는 모터 — J2 모터(ac_motor_type)와 독립
 bc_rod_diameter       = bearing_rod_dia(ac_linear_bearing_type);  // Ø8 가이드 로드(smooth rod) — LM8UU가 타는 매끈 봉
 bc_rod_centers        = [ac_left_linear_bearing_center, ac_right_linear_bearing_center];  // J1 가이드 로드 2축 중심(좌·우) — 여러 곳에서 공유
 

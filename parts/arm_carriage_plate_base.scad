@@ -10,7 +10,7 @@ include <../config.scad>
 // ── 인터페이스 부품(interface vitamins) ───────────────────────────────────
 ac_leadnut_type                  = LSN8x2;
 ac_linear_bearing_type           = LM8UU;
-ac_motor_type                    = NEMA17_40;          // J2(어깨 관절, shoulder joint)를 벨트로 구동하는 모터
+ac_motor_type                    = NEMA17_47;          // J2(어깨 관절, shoulder joint)를 벨트로 구동하는 모터
 ac_driven_axis_ball_bearing_type = BB608;              // J2 종동축(driven axis)을 상하로 지지
 ac_driven_axis_pulley_type       = GT2x60x8_pulley;    // 벨트가 도는 J2 종동 풀리
 ac_j2_idler_pulley_type          = GT2x20_idler_5mm;   // 5mm 보어 베어링 일체형(integral bearing) GT2 20T 아이들러 — 축에서 자유 회전
@@ -50,11 +50,31 @@ assert(ac_linear_bearing_recess_depth <= ac_plate_thickness - seat_shoulder_thic
 
 // ── J2 모터(NEMA17) 리세스 — 2단 시트 숄더로 바디·센터링 보스를 받는다 ────
 ac_motor_radius              = NEMA_radius(ac_motor_type);
-ac_motor_recess_floor_z      = seat_shoulder_thickness * 2;   // 바디 리세스 바닥(위에서 2단 숄더)
-ac_motor_recess_depth        = ac_plate_thickness - ac_motor_recess_floor_z;
+ac_motor_recess_floor_z      = seat_shoulder_thickness * 2;   // 바디 리세스 바닥(위에서 2단 숄더) — 모터 플랜지 안착 z 기준
 ac_motor_boss_recess_floor_z = seat_shoulder_thickness;       // 보스 리세스 바닥(가장 깊은 단도 1단 숄더)
-ac_motor_boss_recess_depth   = ac_plate_thickness - ac_motor_boss_recess_floor_z;
-ac_motor_boss_recess_radius  = NEMA_big_hole(ac_motor_type);
+
+// NEMA 모터 2단 시트 음형(motor seat pocket) — 윗면에서 삽입하는(뒤집힌) 모터용. difference() 안에서 모터 중심에 두고 쓴다.
+// 바디 리세스(2단 숄더) + 센터링 보스 리세스(1단 숄더) + 샤프트 관통 보어 + 스크류 클리어런스 홀. 리세스 깊이는 판 두께에서 잡는다.
+module nema_motor_seat(type, thickness = ac_plate_thickness) {
+    // 모터 스크류 클리어런스 홀(screw clearance holes) — NEMA 홀 피치 기준 플랜지 체결 경로(관통).
+    NEMA_screw_positions(type)
+        translate_z(-eps)
+            cylinder(h = thickness + 2 * eps, r = M3_clearance_radius);
+
+    // 바디 리세스(body recess) — 윗면에서 2단 시트 숄더를 남기는 플랜지 안착면.
+    translate_z(ac_motor_recess_floor_z)
+        linear_extrude(thickness - ac_motor_recess_floor_z + eps)
+            offset(delta = clearance)
+                NEMA_outline(type);
+
+    // 센터링 보스 리세스(centering boss recess) — 가장 깊은 단도 바닥에 1단 숄더를 남기는 동축 공간.
+    translate_z(ac_motor_boss_recess_floor_z)
+        cylinder(h = thickness - ac_motor_boss_recess_floor_z + eps, r = NEMA_big_hole(type));
+
+    // 샤프트 관통 보어(shaft through-bore) — 뒤집힌 모터 축이 보스 시트 숄더를 지나 판 아래 풀리로 내려간다.
+    translate_z(-eps)
+        cylinder(h = thickness + 2 * eps, r = NEMA_shaft_dia(type) / 2 + shaft_clearance / 2);
+}
 
 // ── J2 종동축·아이들러(driven axis & idler) ───────────────────────────────
 ac_driven_axis_pulley_radius = pulley_extent(ac_driven_axis_pulley_type);
