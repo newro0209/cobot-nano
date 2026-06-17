@@ -1,13 +1,13 @@
 // parts/arm_carriage_bottom_plate.scad - J1 carriage bottom plate (NopSCADlib printed-part style).
 // The Z-mirror of the top plate, sharing the same arm-carriage blank, but with no motor: the motor mounts on the top
-// plate only. Its back (-Y) lobe is sized to the 20T drive pulley footprint (pulley OD + component_margin) instead of
-// the motor footprint, since only the pulley reaches this plate. Every other feature (driven-bearing seat, lead-nut
-// seat, guide-rod bearing seats, idler slots) is the top plate's feature with its seat face flipped (from_top inverted).
+// plate only. Its back (-Y) lobe is sized to the 20T drive pulley footprint over the motor-slot travel instead of
+// the motor footprint, since only the pulley reaches this plate. The remaining bearing seats mirror the top plate.
 //
 // J1 캐리지 하판 — 상판과 같은 블랭크를 쓰는 Z 미러. 단, 모터는 없다(모터는 상판에만 단다).
-// 뒤쪽(−Y) 로브는 모터 풋프린트가 아니라 20T 구동 풀리 풋프린트(풀리 외경 + component_margin)에 맞춘다 — 이 판엔 풀리만 닿기 때문이다.
+// 뒤쪽(−Y) 로브는 모터 풋프린트가 아니라 20T 구동 풀리 풋프린트(풀리 외경 + component_margin)에 맞추고,
+// 모터 슬롯 가동 길이 전체를 덮는다 — 이 판엔 풀리만 닿기 때문이다.
 // 리드너트도 없다(너트는 상판에만) — 하판은 리드스크류만 자유 관통한다.
-// 나머지 형상(종동 베어링·가이드 로드 베어링 시트, 아이들러 슬롯)은 상판과 같되, 시트가 열리는 면만 뒤집는다(from_top 반전).
+// 나머지 형상(종동 베어링·가이드 로드 베어링 시트)은 상판과 같되, 시트가 열리는 면만 뒤집는다(from_top 반전).
 
 include <arm_carriage_plate_base.scad>
 use <ball_bearing_seat.scad>
@@ -15,11 +15,13 @@ use <linear_bearing_seat.scad>
 
 module arm_carriage_bottom_plate() {
     difference() {
-        // 뒤쪽(−Y) 로브 = 20T 풀리 로브 — 구동 풀리 외경에 가장자리 여유(component_margin/2)를 둘러 풋프린트를 덮는다(모터에 준 마진과 같은 방식).
+        // 뒤쪽(−Y) 로브 = 20T 풀리 슬롯 로브 — 구동 풀리의 Y 방향 이동 범위를 모두 덮는다.
         union() {
             ac_plate_base()
-                translate(ac_j2_motor_center)
-                    circle(d = pulley_od(j2_drive_pulley_type) + component_margin);
+                hull()
+                    for (center = [ac_j2_motor_near_center, ac_j2_motor_far_center])
+                        translate(center)
+                            circle(d = pulley_od(j2_drive_pulley_type) + component_margin);
 
             // LM8UU 양형 시트 — 25mm 필러처럼 판 간격이 베어링보다 길 때, 하판 윗면 외곽 칼라로 베어링 OD를 잡는다.
             if (ac_linear_bearing_boss_height > eps)
@@ -46,12 +48,6 @@ module arm_carriage_bottom_plate() {
                     linear_bearing_seat_pocket(j1_linear_bearing_type, part_thickness = ac_thickness,
                                                seat_depth = ac_linear_bearing_seat_depth, from_top = true);
 
-        // J2 아이들러 슬롯 — 관통 장공이라 Z 미러에도 동일(상판과 같은 위치·형상).
-        for (side = [-1, 1])
-            hull()
-                for (x = [ac_idler_center_distance, ac_idler_center_distance + ac_idler_slot_travel])
-                    translate([side * x, 0, -eps])
-                        cylinder(d = pulley_bore(j2_idler_pulley_type) + clearance, h = ac_thickness + eps * 2);
     }
 }
 

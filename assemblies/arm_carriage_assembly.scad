@@ -30,7 +30,6 @@ ac_col_top_plate      = [0.18, 0.42, 0.62];
 ac_col_bottom_plate   = [0.16, 0.30, 0.40];
 ac_col_drive_pulley   = [0.85, 0.58, 0.18];
 ac_col_driven_pulley  = [0.78, 0.38, 0.18];
-ac_col_idler_pulley   = [0.38, 0.46, 0.50];
 ac_col_belt           = [0.02, 0.02, 0.025];
 ac_col_belt_tooth     = [0.18, 0.18, 0.18];
 
@@ -46,32 +45,27 @@ ac_drive_pulley_bottom_rel_z = pulley_offset(j2_drive_pulley_type);
 ac_drive_pulley_top_rel_z = pulley_offset(j2_drive_pulley_type) + pulley_height(j2_drive_pulley_type);
 ac_pulley_center_min_for_plates = max(
     ac_pulley_bottom_clearance_z - pulley_offset(j2_drive_pulley_type),
-    ac_pulley_bottom_clearance_z - pulley_offset(j2_driven_pulley_type),
-    ac_pulley_bottom_clearance_z - pulley_offset(j2_idler_pulley_type)
+    ac_pulley_bottom_clearance_z - pulley_offset(j2_driven_pulley_type)
 );
 ac_pulley_center_max_for_plates = min(
     ac_pulley_top_clearance_z - (pulley_offset(j2_drive_pulley_type) + pulley_height(j2_drive_pulley_type)),
-    ac_pulley_top_clearance_z - (pulley_offset(j2_driven_pulley_type) + pulley_height(j2_driven_pulley_type)),
-    ac_pulley_top_clearance_z - (pulley_offset(j2_idler_pulley_type) + pulley_height(j2_idler_pulley_type))
+    ac_pulley_top_clearance_z - (pulley_offset(j2_driven_pulley_type) + pulley_height(j2_driven_pulley_type))
 );
 ac_drive_pulley_center_min_for_shaft = ac_motor_shaft_tip_z - ac_drive_pulley_bottom_rel_z + clearance / 2;
 ac_drive_pulley_center_max_for_shaft = ac_motor_face_z - ac_drive_pulley_top_rel_z - clearance / 2;
 ac_belt_center_z = max(ac_pulley_center_min_for_plates, ac_drive_pulley_center_min_for_shaft) + eps;
 ac_drive_pulley_local_z = ac_belt_center_z - ac_top_plate_z;
 ac_drive_pulley_screw_z = ac_belt_center_z + pulley_offset(j2_drive_pulley_type) + pulley_screw_z(j2_drive_pulley_type);
-ac_idler_axis_center_distance = ac_idler_center_distance + ac_idler_slot_travel / 2;
 
-function ac_timing_belt_path(idler_center_distance) = [
-    [ac_j2_motor_center.x, ac_j2_motor_center.y, j2_drive_pulley_type],
-    [idler_center_distance, 0, j2_idler_pulley_type],
-    [j2_driven_axis_center.x, j2_driven_axis_center.y, j2_driven_pulley_type],
-    [-idler_center_distance, 0, j2_idler_pulley_type]
+function ac_timing_belt_path(motor_center) = [
+    [motor_center.x, motor_center.y, j2_drive_pulley_type],
+    [j2_driven_axis_center.x, j2_driven_axis_center.y, j2_driven_pulley_type]
 ];
 
 ac_timing_belt_type         = pulley_belt(j2_drive_pulley_type);
-ac_timing_belt_path_min     = ac_timing_belt_path(ac_idler_center_distance);
-ac_timing_belt_path_current = ac_timing_belt_path(ac_idler_axis_center_distance);
-ac_timing_belt_path_max     = ac_timing_belt_path(ac_idler_center_distance + ac_idler_slot_travel);
+ac_timing_belt_path_min     = ac_timing_belt_path(ac_j2_motor_near_center);
+ac_timing_belt_path_current = ac_timing_belt_path(ac_j2_motor_center);
+ac_timing_belt_path_max     = ac_timing_belt_path(ac_j2_motor_far_center);
 
 ac_timing_belt_length_min     = belt_length(ac_timing_belt_type, ac_timing_belt_path_min);
 ac_timing_belt_length_current = belt_length(ac_timing_belt_type, ac_timing_belt_path_current);
@@ -90,6 +84,8 @@ echo(str("J2 GT2 closed-loop belt usable standard range = ",
          ac_timing_belt_standard_max, " mm, nominal ",
          ac_timing_belt_standard_mid, " mm"));
 
+assert(ac_timing_belt_type == pulley_belt(j2_driven_pulley_type),
+       "J2 구동 풀리와 종동 풀리는 같은 벨트 타입이어야 한다");
 assert(!is_list(NEMA_shaft_length(j2_motor_type)), "J2 모터 샤프트 길이는 숫자여야 한다");
 assert(ac_belt_center_z < min(ac_pulley_center_max_for_plates, ac_drive_pulley_center_max_for_shaft),
        "모터 샤프트와 상/하판 사이에 공통 풀리 높이를 잡을 공간이 있어야 한다");
@@ -97,14 +93,12 @@ assert(ac_drive_pulley_screw_z > ac_motor_shaft_tip_z,
        "J2 구동 풀리 세트스크류 위치는 모터 샤프트 끝보다 위에 있어야 한다");
 assert(ac_belt_center_z + min(
            pulley_offset(j2_drive_pulley_type),
-           pulley_offset(j2_driven_pulley_type),
-           pulley_offset(j2_idler_pulley_type)
+           pulley_offset(j2_driven_pulley_type)
        ) > ac_pulley_bottom_clearance_z,
        "풀리는 하판 윗면과 간섭하지 않아야 한다");
 assert(ac_belt_center_z + max(
            pulley_height(j2_drive_pulley_type) + pulley_offset(j2_drive_pulley_type),
-           pulley_height(j2_driven_pulley_type) + pulley_offset(j2_driven_pulley_type),
-           pulley_height(j2_idler_pulley_type) + pulley_offset(j2_idler_pulley_type)
+           pulley_height(j2_driven_pulley_type) + pulley_offset(j2_driven_pulley_type)
        ) < ac_pulley_top_clearance_z,
        "풀리는 상판 아랫면과 간섭하지 않아야 한다");
 
@@ -150,11 +144,6 @@ module ac_shared_pulleys() {
     // J2 종동 풀리 — BB608로 지지되는 어깨축의 회전 출력 풀리.
     translate([j2_driven_axis_center[0], j2_driven_axis_center[1], ac_belt_center_z])
         pulley_assembly(j2_driven_pulley_type, ac_col_driven_pulley);
-
-    // J2 아이들러 풀리 — 좌우 슬롯의 중앙 위치에 기본 안착시킨다.
-    for (side = [-1, 1])
-        translate([side * ac_idler_axis_center_distance, 0, ac_belt_center_z])
-            pulley_assembly(j2_idler_pulley_type, ac_col_idler_pulley);
 }
 
 module ac_timing_belt() {

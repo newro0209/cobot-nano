@@ -62,6 +62,59 @@ module nema_motor_seat_pocket(type, part_thickness, from_top = false) {
         pocket();
 }
 
+//! NEMA 모터 시트 슬롯 음형(negative) — 모터가 travel_vector 방향으로 미끄러지도록 바디·보스·샤프트·스크류 홀을 각각 슬롯화한다.
+//! 전체 시트를 hull()로 뭉개지 않고 feature별로 슬롯을 만들어, 센터링 보스와 체결 홀의 기계적 역할을 보존한다.
+module nema_motor_seat_slot_pocket(type, part_thickness, travel_vector, from_top = false) {
+    boss_height = NEMA_boss_height(type);
+    face_inset = nema_motor_seat_face_inset(type, part_thickness);
+    boss_recess_bottom_z = part_thickness - seat_shoulder_thickness;
+
+    assert(face_inset > 0,
+           "part_thickness는 seat_shoulder_thickness + 보스 높이(NEMA_boss_height)보다 커야 한다");
+    assert(norm(travel_vector) > 0, "travel_vector는 0이 아니어야 한다");
+
+    module at_slot_ends() {
+        for (slot_offset = [[0, 0], travel_vector])
+            translate(slot_offset)
+                children();
+    }
+
+    module pocket() {
+        body_recess_depth = face_inset;
+
+        // 바디 슬롯(body slot) — 모터 끝단 외곽이 Y 방향으로 미끄러질 수 있게 NEMA_outline 리세스를 늘린다.
+        translate_z(-eps)
+            linear_extrude(body_recess_depth + eps)
+                hull()
+                    at_slot_ends()
+                        offset(r = clearance) NEMA_outline(type);
+
+        // 센터링 보스 슬롯(centering-boss slot) — 보스가 슬롯 전 구간에서 축 정렬 기준으로 작동하도록 한다.
+        translate_z(body_recess_depth)
+            hull()
+                at_slot_ends()
+                    cylinder(r = NEMA_big_hole(type), h = boss_height + eps);
+
+        // 샤프트 슬롯(shaft slot) — 남은 seat shoulder를 통과하는 축 경로도 모터 이동량만큼 열어준다.
+        translate_z(boss_recess_bottom_z)
+            hull()
+                at_slot_ends()
+                    cylinder(d = NEMA_shaft_dia(type) + shaft_clearance, h = seat_shoulder_thickness + eps);
+
+        // 마운팅 스크류 슬롯(mounting-screw slots) — 모터를 이동시킨 뒤 같은 M3 체결구로 고정한다.
+        for (x = NEMA_holes(type), y = NEMA_holes(type))
+            hull()
+                at_slot_ends()
+                    translate([x, y, -eps])
+                        cylinder(d = NEMA_thread_d(type) + clearance, h = part_thickness + eps * 2);
+    }
+
+    if (from_top)
+        translate_z(part_thickness) mirror([0, 0, 1]) pocket();
+    else
+        pocket();
+}
+
 // 미리보기(preview) — 시험 블록 양쪽에 깎은 모터 시트(음형): 왼쪽 바닥 열림, 오른쪽 윗면 열림.
 if ($preview) {
     difference() {

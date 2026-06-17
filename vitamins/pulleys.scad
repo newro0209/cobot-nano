@@ -17,8 +17,3 @@ GT2x60x8_pulley = ["GT2x60x8_pulley", "GT2", 60,   37.69, GT2x6, 7,    25,     9
 // J1 리드스크류 종동 풀리 — 20T GT2, 보어(bore) 8mm를 T8 리드스크류에 맞춘다(모터 20T와 1:1 직결, 감속 없음).
 //                   code               type  teeth od     belt   width hub_dia hub_l bore flange_d flange_t screw_l screw_z screw          screws
 GT2x20x8_pulley = ["GT2x20x8_pulley", "GT2", 20,   12.22, GT2x6, 7,     18,      7,    8,   18,    1.0, 6,   3.75, M3_grub_screw, 2];
-
-// J2 아이들러 — 5mm 보어 베어링 일체형(integral bearing) GT2 20T 토스트 아이들러. 보어(bore)=베어링 내경 5mm, M5 축에 끼워 자유 회전한다.
-// NopSCADlib GT2x20_toothed_idler(보어 4mm)를 미러링하되 보어만 5mm로 둔다(screws=0 → idler, 내장 베어링).
-//                     code               type  teeth od     belt   width hub_dia hub_l bore flange_d flange_t screw_l screw_z screw screws
-GT2x20_idler_5mm = ["GT2x20_idler_5mm", "GT2", 20,   12.22, GT2x6, 6.5, 18,      0, 5,   18.0,  1.0, 0,   0,   false,         0];

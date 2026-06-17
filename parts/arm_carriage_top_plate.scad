@@ -13,11 +13,13 @@ use <motor_seat.scad>
 
 module arm_carriage_top_plate() {
     difference() {
-        // 뒤쪽(−Y) 로브 = 모터 마운트 로브 — 실제 모터 외곽(NEMA_outline)에 가장자리 여유(component_margin/2)를 둘러 풋프린트를 덮는다.
+        // 뒤쪽(−Y) 로브 = 모터 슬롯 로브 — 모터가 near~far 전 구간에서 판 밖으로 벗어나지 않도록 슬롯 가동 길이만큼 늘린다.
         union() {
             ac_plate_base()
-                translate(ac_j2_motor_center)
-                    offset(r = component_margin / 2) NEMA_outline(j2_motor_type);
+                hull()
+                    for (center = [ac_j2_motor_near_center, ac_j2_motor_far_center])
+                        translate(center)
+                            offset(r = component_margin / 2) NEMA_outline(j2_motor_type);
 
             // LM8UU 양형 시트 — 25mm 필러처럼 판 간격이 베어링보다 길 때, 상판 아랫면 외곽 칼라로 베어링 OD를 잡는다.
             if (ac_linear_bearing_boss_height > eps)
@@ -45,17 +47,12 @@ module arm_carriage_top_plate() {
                     linear_bearing_seat_pocket(j1_linear_bearing_type, part_thickness = ac_thickness,
                                                seat_depth = ac_linear_bearing_seat_depth, from_top = false);
 
-        // J2 스텝모터 시트 — 리드너트 뒤(−Y)에서 판 윗면에 모터를 앉힌다(from_top=true). 바디 리세스 + 센터링 보스 리세스 + 샤프트 보어 + 스크류 홀.
-        translate(ac_j2_motor_center)
-            nema_motor_seat_pocket(j2_motor_type, part_thickness = ac_thickness, from_top = true);
-
-        // J2 아이들러 슬롯 — 리드너트 좌우(±X)에 아이들러 축(M5)을 통과시키는 X 방향 장공(slot). 슬롯 안에서 좌우로 밀어 벨트 텐션을 잡는다.
-        // 슬롯은 리드너트 옆(ac_idler_center_distance)에서 바깥으로 travel만큼 뻗는 두 끝점을 hull로 이은 장공이다.
-        for (side = [-1, 1])
-            hull()
-                for (x = [ac_idler_center_distance, ac_idler_center_distance + ac_idler_slot_travel])
-                    translate([side * x, 0, -eps])
-                        cylinder(d = pulley_bore(j2_idler_pulley_type) + clearance, h = ac_thickness + eps * 2);
+        // J2 스텝모터 슬롯 시트 — 아이들러 대신 모터가 Y 방향으로 이동해 벨트 장력을 조절한다.
+        translate(ac_j2_motor_near_center)
+            nema_motor_seat_slot_pocket(j2_motor_type,
+                                         part_thickness = ac_thickness,
+                                         travel_vector = ac_j2_motor_slot_vector,
+                                         from_top = true);
     }
 }
 

@@ -17,20 +17,17 @@ ac_j2_driven_axis_bounding_diameter = max(
     pulley_extent(j2_driven_pulley_type) * 2
 ) + component_margin;
 
-// J2 모터 중심 — 리드너트 뒤(−Y, J2 어깨축 반대편)에 모터를 단다. 모터의 평평한 면(NEMA_width/2)이 리드너트를 향하므로,
-// 리드너트 플랜지와 모터 바디 사이가 component_margin만큼 떨어지는 중심 거리를 NEMA_width로 잡는다.
-ac_j2_motor_center = [0, -center_distance_for_bounding_diameters(
-                            leadnut_flange_dia(j1_leadnut_type),
-                            NEMA_width(j2_motor_type),
-                            component_margin)];
-
-// J2 벨트 아이들러 — 리드너트(J1 중심) 좌우(±X)에 한 쌍. 슬롯 안쪽 끝을 리드너트 플랜지 바로 옆(clearance만큼 띄움)에 두고,
-// 거기서 바깥(±X)으로 ac_idler_slot_travel만큼 밀어 GT2 벨트 텐션을 조정한다.
-ac_idler_center_distance = center_distance_for_bounding_diameters(
-                               leadnut_flange_dia(j1_leadnut_type),
-                               pulley_od(j2_idler_pulley_type),
-                               clearance);
-ac_idler_slot_travel = 10;   // 아이들러 X 위치 조정 범위(슬롯 가동 길이) — 벨트 텐션
+// J2 모터 슬롯 — 아이들러 없이 모터 전체를 −Y 방향으로 밀어 GT2 벨트 장력을 조절한다.
+// near 위치는 리드너트 플랜지와 모터 바디 사이가 component_margin만큼 남는 가장 안쪽 위치이고, far 위치가 최대 장력 위치다.
+ac_j2_motor_slot_travel = 8;
+ac_j2_motor_near_center = [0, -center_distance_for_bounding_diameters(
+                                leadnut_flange_dia(j1_leadnut_type),
+                                NEMA_width(j2_motor_type),
+                                component_margin)];
+function ac_j2_motor_center_at(slot_offset) = ac_j2_motor_near_center + [0, -slot_offset];
+ac_j2_motor_center = ac_j2_motor_center_at(ac_j2_motor_slot_travel / 2);
+ac_j2_motor_far_center = ac_j2_motor_center_at(ac_j2_motor_slot_travel);
+ac_j2_motor_slot_vector = ac_j2_motor_far_center - ac_j2_motor_near_center;
 
 // 상/하판 간격과 LM8UU 시트 깊이 — 필러 길이를 기준으로 판 간격을 정하고, 베어링이 양쪽 판에 닿을 때만 시트를 판다.
 ac_plate_gap = pillar_height(standoff_pillar_type);
@@ -39,19 +36,28 @@ ac_linear_bearing_axial_clearance = max(ac_plate_gap - bearing_length(j1_linear_
 ac_linear_bearing_boss_height = ac_linear_bearing_axial_clearance / 2;
 assert(ac_linear_bearing_seat_depth <= ac_thickness, "LM 베어링 시트 깊이는 판 두께 이하여야 한다");
 
-// 스탠드오프 볼트 서클 배치 — 주석 다시 달것
-ac_standoff_count              = 4;
+// 스탠드오프 볼트 서클(standoff bolt circle) — 모터 슬롯과 간섭하는 모터 쪽 인덱스를 제외할 수 있게 한다.
+ac_standoff_count              = 8;
 ac_standoff_bolt_circle_radius = cc_j1_guide_rod_distance_from_center - component_margin;
-ac_standoff_start_angle        = 45;
+ac_standoff_start_angle        = 0;
+ac_standoff_excluded_indices   = [2, 5, 6, 7]; // start_angle=0 기준 225°, 270°, 315° 위치 — 모터 슬롯 쪽 간섭 회피
 
-module ac_standoff_positions() {
+function ac_index_in_list(index, indices) =
+    len([for (i = indices) if (i == index) i]) > 0;
+
+ac_standoff_active_indices = [
     for (i = [0 : ac_standoff_count - 1])
+        if (!ac_index_in_list(i, ac_standoff_excluded_indices)) i
+];
+
+module ac_standoff_positions(indices = ac_standoff_active_indices) {
+    for (i = indices)
         at_radial(i, ac_standoff_count, ac_standoff_bolt_circle_radius, ac_standoff_start_angle)
             children();
 }
 
-// 뒤쪽(−Y) 로브는 판마다 다르므로(상판=모터 풋프린트, 하판=20T 풀리 풋프린트) ac_plate_base 안에 박지 않고
-// children()로 받는다. 호출 판이 ac_j2_motor_center 자리에 둘 2D 프로파일을 넘기고, 여기서 J1 중심과 한 몸으로 잇는다.
+// 뒤쪽(−Y) 로브는 판마다 다르므로(상판=모터 슬롯 풋프린트, 하판=20T 풀리 슬롯 풋프린트) ac_plate_base 안에 박지 않고
+// children()로 받는다. 호출 판이 모터 슬롯 전체를 덮는 2D 프로파일을 넘기고, 여기서 J1 중심과 한 몸으로 잇는다.
 module ac_plate_base() {
     difference() {
         cc_plate_with_profile_2d(ac_thickness) {
@@ -86,4 +92,6 @@ module ac_plate_base() {
 
 if($preview)
     ac_plate_base()
-        translate(ac_j2_motor_center) circle(d = ac_j2_driven_axis_bounding_diameter);
+        hull()
+            for (center = [ac_j2_motor_near_center, ac_j2_motor_far_center])
+                translate(center) circle(d = ac_j2_driven_axis_bounding_diameter);
