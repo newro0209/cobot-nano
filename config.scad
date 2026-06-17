@@ -11,8 +11,8 @@ include <NopSCADlib/global_defs.scad>
 include <NopSCADlib/vitamins/ball_bearings.scad>
 include <NopSCADlib/vitamins/linear_bearings.scad>
 include <NopSCADlib/vitamins/leadnuts.scad>
-include <NopSCADlib/vitamins/pillars.scad>
 include <NopSCADlib/vitamins/stepper_motors.scad>
+include <vitamins/pillars.scad>        // 로컬 M3x20_ff_hex_pillar (+ NopSCADlib pillar 패밀리)
 include <vitamins/screws.scad>         // 로컬 M6_shoulder_screw (+ NopSCADlib screw 패밀리)
 include <vitamins/pulleys.scad>        // 로컬 GT2x60x8_pulley (+ NopSCADlib pulley 패밀리)
 include <vitamins/flange_couplers.scad>// 로컬 FC8 플랜지 샤프트 커플러 (NopSCADlib 미수록)

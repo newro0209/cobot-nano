@@ -11,6 +11,9 @@ module base_column_bottom_plate() {
     difference() {
         base_column_plate_blank();
         base_column_axis_cuts();
+
+        // 홀더 플랜지 리세스 — 바깥(아랫) 면에서 KFL·FC 플랜지를 가라앉힌다.
+        base_column_holder_recesses(from_top = false);
     }
 }
 

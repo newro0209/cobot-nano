@@ -28,6 +28,7 @@ function kfl_housing_diameter(type) = type[8];  //! Bearing housing diameter
 function kfl_height(type)           = type[9];  //! Total height Z, flange face to housing front
 function kfl_collar_height(type)    = type[10]; //! Inner-race collar height n (carries the set screws)
 function kfl_bearing(type)          = type[11]; //! Reference ball-bearing type (bore/OD basis)
+function kfl_radius(type)           = kfl_length(type) / 2;  //! Overall extent radius (circumscribing the bolt-ear length) — like NEMA_radius wrapping a motor body
 
 module kfl_screw_positions(type) { //! Place children at the two mounting-hole centres on the flange face
     for (x = [-1, 1])

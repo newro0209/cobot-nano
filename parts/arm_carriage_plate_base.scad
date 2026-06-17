@@ -15,7 +15,7 @@ ac_driven_axis_ball_bearing_type = BB608;              // J2 종동축(driven ax
 ac_driven_axis_pulley_type       = GT2x60x8_pulley;    // 벨트가 도는 J2 종동 풀리
 ac_j2_idler_pulley_type          = GT2x20_idler_5mm;   // 5mm 보어 베어링 일체형(integral bearing) GT2 20T 아이들러 — 축에서 자유 회전
 ac_j2_idler_screw_type           = M5_cap_screw;       // 아이들러 축 = 베어링 보어(5mm)에 맞춘 M5 볼트(슬롯에서 장력 조절)
-ac_standoff_type = ["M3x20_ff_hex_pillar", "hex", 3, 20, 5 / cos(30), 5 / cos(30), 6, 6, "silver", silver, -8, -8, true];
+ac_standoff_type                 = M3x20_ff_hex_pillar;  // 두 판 사이 스탠드오프 — vitamins/pillars.scad 로컬 타입
 
 // ── 독립 입력 치수(independent inputs) ────────────────────────────────────
 ac_j2_linear_link_length = 100;  // 모터축 ↔ J2 종동축 피벗 거리
@@ -121,20 +121,20 @@ function j2_belt_envelope_y(x, ramp_up_x, ramp_down_x) =
                           / (ac_j2_linear_link_length - ramp_down_x)
      : ac_j2_idler_center_y) + ac_j2_belt_xy_keepout;
 
-// 스탠드오프 자리 적합(keepout) — 회전·고정 부품(모터·리드넛·LM8UU·종동축 풀리)과 J2 벨트 경로를 모두 비켜나면 참.
+// 스탠드오프 자리 적합(keepout) — 회전·고정 부품(모터·리드넛·LM8UU·종동축 풀리)과 component_margin 이상 떨어지고 J2 벨트 경로 밖이면 참.
 function ac_standoff_clear(c) =
-       norm(c - ac_motor_center)               >= ac_motor_radius + ac_standoff_body_radius + clearance
-    && norm(c - ac_leadnut_center)             >= ac_leadnut_flange_recess_radius + ac_standoff_body_radius + clearance
-    && norm(c - ac_left_linear_bearing_center)  >= ac_linear_bearing_recess_radius + ac_standoff_body_radius + clearance
-    && norm(c - ac_right_linear_bearing_center) >= ac_linear_bearing_recess_radius + ac_standoff_body_radius + clearance
-    && norm(c - ac_driven_axis_center)         >= ac_driven_axis_pulley_radius + ac_standoff_body_radius + clearance
+       norm(c - ac_motor_center)               >= ac_motor_radius + ac_standoff_body_radius + component_margin
+    && norm(c - ac_leadnut_center)             >= ac_leadnut_flange_recess_radius + ac_standoff_body_radius + component_margin
+    && norm(c - ac_left_linear_bearing_center)  >= ac_linear_bearing_recess_radius + ac_standoff_body_radius + component_margin
+    && norm(c - ac_right_linear_bearing_center) >= ac_linear_bearing_recess_radius + ac_standoff_body_radius + component_margin
+    && norm(c - ac_driven_axis_center)         >= ac_driven_axis_pulley_radius + ac_standoff_body_radius + component_margin
     && (c.x < ac_motor_center.x || c.x > ac_driven_axis_center.x
         || (abs(c.y) >= j2_belt_envelope_y(c.x, ac_j2_idler_slot_min_x, ac_j2_idler_slot_max_x)
          && abs(c.y) >= j2_belt_envelope_y(c.x, ac_j2_idler_center_x, ac_j2_idler_center_x)));
 
 // 스탠드오프 볼트서클(bolt circle) — 캐리지 디스크 가장자리 안쪽 한 반경에 등각 후보를 두고,
 // 회전·고정 부품과 벨트 경로를 침범하는 후보(특히 +x 링크/벨트 통로, −x 리드넛)는 걸러 빈 둘레만 메운다.
-ac_standoff_bolt_circle_radius = ac_outer_radius + 1;
+ac_standoff_bolt_circle_radius = ac_outer_radius + component_margin / 2 - ac_standoff_body_radius;  // 디스크 가장자리 안쪽 — 안쪽 부품에서 최대로 떨어진다
 ac_standoff_candidate_count    = 10;   // 36° 등각 후보 — 키프아웃을 통과하는 점만 실제 스탠드오프가 된다
 ac_standoff_centers = [
     for (i = [0 : ac_standoff_candidate_count - 1])
@@ -146,34 +146,74 @@ ac_standoff_centers = [
 assert(len(ac_standoff_centers) >= 4,
        "스탠드오프 볼트서클에서 키프아웃을 통과하는 점이 4개 이상이어야 한다 — 반경·후보 수를 조정하라");
 
-module arm_carriage_plate_base() {
-    linear_extrude(height = ac_plate_thickness)
-        difference() {
-            union() {
-                // 캐리지 외곽 디스크(carriage outer disc) — 모터와 J1 3점 풋프린트가 한 판에 들어가는 원형 경계.
-                circle(d = ac_outer_radius * 2 + component_margin);
+// 암 캐리지 단판 블랭크(plate blank) — 캐리지 외곽 디스크 + J2 선형 링크. 절단 없음(공유 음형은 따로).
+module arm_carriage_plate_blank() {
+    linear_extrude(ac_plate_thickness)
+        union() {
+            // 캐리지 외곽 디스크(carriage outer disc) — 모터와 J1 3점 풋프린트가 한 판에 들어가는 원형 경계.
+            circle(d = ac_outer_radius * 2 + component_margin);
 
-                // J2 선형 링크(linear link) — 모터축과 종동축을 잇는, 종동 풀리 풋프린트 폭의 직선 링크.
-                hull() {
-                    translate(ac_motor_center)       circle(r = ac_j2_linear_link_radius);
-                    translate(ac_driven_axis_center) circle(r = ac_j2_linear_link_radius);
-                }
+            // J2 선형 링크(linear link) — 모터축과 종동축을 잇는, 종동 풀리 풋프린트 폭의 직선 링크.
+            hull() {
+                translate(ac_motor_center)       circle(r = ac_j2_linear_link_radius);
+                translate(ac_driven_axis_center) circle(r = ac_j2_linear_link_radius);
             }
-
-            // J1 Z축 관통 보어(through bore) — 리드스크류·가이드 로드가 자유롭게 지난다.
-            translate(ac_leadnut_center)              circle(d = leadnut_bore(ac_leadnut_type) + shaft_clearance);
-            translate(ac_left_linear_bearing_center)  circle(d = bearing_rod_dia(ac_linear_bearing_type) + shaft_clearance);
-            translate(ac_right_linear_bearing_center) circle(d = bearing_rod_dia(ac_linear_bearing_type) + shaft_clearance);
-
-            // J2 종동축 관통 보어(driven axis bore) — 풀리 보어(pulley bore) 기준 축 경로.
-            translate(ac_driven_axis_center)
-                circle(r = pulley_bore(ac_driven_axis_pulley_type) / 2 + shaft_clearance / 2);
-
-            // J2 아이들러 조절 슬롯(idler slots) — 대칭 아이들러 축 볼트가 벨트 장력 조절을 위해 X로 미끄러진다.
-            for (idler_center = ac_j2_idler_centers)
-                hull() {
-                    translate([ac_j2_idler_slot_min_x, idler_center.y]) circle(r = ac_j2_idler_slot_radius);
-                    translate([ac_j2_idler_slot_max_x, idler_center.y]) circle(r = ac_j2_idler_slot_radius);
-                }
         }
+}
+
+// 두 판이 공유하는 관통 음형(through cuts) — J1 3축 보어, J2 종동축 보어, J2 아이들러 슬롯, 스탠드오프 스크류 홀. difference() 안에서 쓴다.
+module arm_carriage_axis_cuts() {
+    // J1 Z축 관통 보어(through bore) — 리드스크류·가이드 로드가 자유롭게 지난다.
+    translate(ac_leadnut_center)
+        translate_z(-eps)
+            cylinder(d = leadnut_bore(ac_leadnut_type) + shaft_clearance, h = ac_plate_thickness + 2 * eps);
+    for (rod_center = [ac_left_linear_bearing_center, ac_right_linear_bearing_center])
+        translate(rod_center)
+            translate_z(-eps)
+                cylinder(d = bearing_rod_dia(ac_linear_bearing_type) + shaft_clearance, h = ac_plate_thickness + 2 * eps);
+
+    // J2 종동축 관통 보어(driven axis bore) — 풀리 보어(pulley bore) 기준 축 경로.
+    translate(ac_driven_axis_center)
+        translate_z(-eps)
+            cylinder(r = pulley_bore(ac_driven_axis_pulley_type) / 2 + shaft_clearance / 2, h = ac_plate_thickness + 2 * eps);
+
+    // J2 아이들러 조절 슬롯(idler slots) — 대칭 아이들러 축 볼트가 벨트 장력 조절을 위해 X로 미끄러진다.
+    for (idler_center = ac_j2_idler_centers)
+        hull()
+            for (x = [ac_j2_idler_slot_min_x, ac_j2_idler_slot_max_x])
+                translate([x, idler_center.y])
+                    translate_z(-eps)
+                        cylinder(r = ac_j2_idler_slot_radius, h = ac_plate_thickness + 2 * eps);
+
+    // 스탠드오프 스크류 클리어런스 홀(standoff screw clearance holes) — 상·하 스크류가 암나사 스탠드오프로 통한다.
+    for (standoff_center = ac_standoff_centers)
+        translate(standoff_center)
+            translate_z(-eps)
+                cylinder(r = ac_standoff_screw_clearance_radius, h = ac_plate_thickness + 2 * eps);
+}
+
+// J1 리드넛 리세스(leadnut recess) — 플랜지·섕크 안착 포켓 + 스크류 클리어런스 홀(두 판 동일). difference() 안에서 쓴다.
+module arm_carriage_leadnut_recess() {
+    translate(ac_leadnut_center) {
+        // 플랜지 리세스(flange recess) — 하부 장착 플랜지가 판 안으로 안착하는 포켓.
+        translate_z(-eps)
+            cylinder(h = ac_leadnut_flange_recess_depth + eps, r = ac_leadnut_flange_recess_radius);
+
+        // 섕크 리세스(shank recess) — 플랜지 위 원통 섕크의 간섭 공간.
+        translate_z(ac_leadnut_flange_recess_depth)
+            cylinder(h = ac_leadnut_shank_recess_depth + eps, r = ac_leadnut_shank_recess_radius);
+
+        // 스크류 클리어런스 홀(screw clearance holes) — NopSCADlib 플랜지 홀 위치와 같은 체결 경로.
+        leadnut_screw_positions(ac_leadnut_type)
+            translate_z(-ac_leadnut_flange_thickness - eps)
+                cylinder(h = ac_plate_thickness + 2 * eps, r = ac_leadnut_screw_clearance_radius);
+    }
+}
+
+// J1 선형 베어링 리세스(linear bearing recess) — 두 판 사이 LM8UU가 안쪽 면에서 절반씩 안착. from_top이면 윗면(하판), 아니면 바닥면(상판). difference() 안에서 쓴다.
+module arm_carriage_linear_bearing_recess(from_top) {
+    for (bearing_center = [ac_left_linear_bearing_center, ac_right_linear_bearing_center])
+        translate(bearing_center)
+            translate_z(from_top ? ac_plate_thickness - ac_linear_bearing_recess_depth : -eps)
+                cylinder(h = ac_linear_bearing_recess_depth + eps, r = ac_linear_bearing_recess_radius);
 }
