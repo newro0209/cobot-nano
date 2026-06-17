@@ -41,6 +41,9 @@ assert(kfl_bore(bc_screw_support_type) == leadnut_bore(ac_leadnut_type),
 assert(fc_bore(bc_rod_support_type) == bc_rod_diameter,
        "플랜지 커플러 보어는 가이드 로드 지름과 같아야 한다");
 
+// 상단 단판 윗면(top-plate face) — 상단 플랜지 홀더가 앉고, 결합 조립의 J1 축 스팬 기준이 되는 z. (공유 리드스크류·로드 드로잉은 결합 조립이 소유한다.)
+bc_top_face_z = bc_clear_height + bc_plate_thickness;
+
 // 플랜지 홀더 접선 배치 각도(tangential angle) — 홀더 장축을 반경에 수직으로 둬 모서리를 판 안에 들이고 볼트열을 펼친다.
 function bc_tangential_angle(center) = atan2(center.y, center.x) + 90;
 

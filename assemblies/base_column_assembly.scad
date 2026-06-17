@@ -12,7 +12,6 @@ bc_exploded = 0; // [0:0.05:1]
 include <../parts/base_column_plate_base.scad>
 use <../parts/base_column_bottom_plate.scad>
 use <../parts/base_column_top_plate.scad>
-use <NopSCADlib/vitamins/rod.scad>
 use <NopSCADlib/vitamins/belt.scad>
 
 bc_explode_distance = 40;
@@ -31,17 +30,6 @@ bc_motor_pulley_origin_z = bc_belt_center_z + pulley_offset(bc_motor_pulley_type
 bc_drive_top_z           = max(bc_screw_pulley_origin_z + pulley_height(bc_screw_pulley_type),
                                bc_motor_pulley_origin_z + pulley_height(bc_motor_pulley_type));
 bc_motor_face_z          = -bc_plate_thickness + ac_motor_recess_depth;   // NEMA 앞면(플랜지)이 리세스 바닥에 짚는 z
-
-// ── 리드스크류·로드 Z 스팬(span) — 위·아래 플랜지 홀더를 관통한다 ─────────
-bc_top_face_z     = bc_clear_height + bc_plate_thickness;   // 상단 단판 윗면(상단 홀더가 앉는 면)
-bc_screw_bottom_z = -bc_plate_thickness - kfl_height(bc_screw_support_type);
-bc_screw_top_z    = bc_top_face_z + kfl_height(bc_screw_support_type);
-bc_screw_length   = bc_screw_top_z - bc_screw_bottom_z;
-bc_screw_center_z = (bc_screw_top_z + bc_screw_bottom_z) / 2;
-bc_rod_bottom_z   = -bc_plate_thickness - fc_height(bc_rod_support_type);
-bc_rod_top_z      = bc_top_face_z + fc_height(bc_rod_support_type);
-bc_rod_length     = bc_rod_top_z - bc_rod_bottom_z;
-bc_rod_center_z   = (bc_rod_top_z + bc_rod_bottom_z) / 2;
 
 // ── 색(part colours) — 출력물 단판은 블루, 풀리는 주황, 홀더/모터 등 vitamin은 내부 재질색 ──
 bc_col_plate        = [0.20, 0.45, 0.78];
@@ -87,19 +75,10 @@ module base_column_assembly() {
         bc_place_support_ends(ac_leadnut_center)
             flange_bearing(bc_screw_support_type);
 
-        // ── 가이드 로드(Ø8 smooth rod)와 끝단 플랜지 커플러(FC8) — 로드마다 상·하 커플러로 물고 봉이 두 단판을 잇는다 ──
-        for (rod_center = bc_rod_centers) {
+        // ── 가이드 로드 끝단 플랜지 커플러(FC8) — 로드마다 상·하 커플러로 봉을 문다(공유 리드스크류·봉은 결합 조립에서 그린다) ──
+        for (rod_center = bc_rod_centers)
             bc_place_support_ends(rod_center)
                 flange_coupler(bc_rod_support_type);
-            translate([rod_center.x, rod_center.y, bc_rod_center_z])
-                rod(bc_rod_diameter, bc_rod_length);
-        }
-
-        // ── J1 리드스크류(T8x2 trapezoidal lead screw) — 상·하 KFL 베어링에 지지되어 회전, 리드넛이 타고 Z 병진 ──
-        translate([ac_leadnut_center.x, ac_leadnut_center.y, bc_screw_center_z])
-            leadscrew(leadnut_bore(ac_leadnut_type), bc_screw_length,
-                      leadnut_lead(ac_leadnut_type),
-                      leadnut_lead(ac_leadnut_type) / leadnut_pitch(ac_leadnut_type));
 
         // ── J1 구동 모터(NEMA17) — 하단 단판 아래에 매달려 샤프트가 판 위로 올라온다 ──
         explode([0, 0, -bc_explode_distance * 2])

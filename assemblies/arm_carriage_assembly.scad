@@ -26,7 +26,6 @@ use <NopSCADlib/vitamins/washer.scad>
 use <NopSCADlib/vitamins/linear_bearing.scad>
 use <annotations.scad>
 use <../parts/j2_hub.scad>
-use <NopSCADlib/vitamins/rod.scad>
 
 ac_explode_distance = 24;
 ac_bloom_gain       = 0.9;   // exploded bloom — 원점(0점)에서 거리비례로 부품을 밀어내는 배수(멀수록 더 벌어짐)
@@ -109,10 +108,6 @@ ac_linear_bearing_top_z    = ac_linear_bearing_center_z + bearing_length(ac_line
 ac_linear_bearing_bottom_z = ac_linear_bearing_center_z - bearing_length(ac_linear_bearing_type) / 2;
 ac_plate_linear_bearing_recess_floor_z   = ac_plate_z + ac_linear_bearing_recess_depth;
 ac_housing_linear_bearing_recess_floor_z = ac_housing_top_z - ac_linear_bearing_recess_depth;
-
-// J1 Z축 샤프트(lead screw + 가이드 샤프트) — 카메라가 타고 오르내리는 고정 가이드. 상단을 상판 위로 빼고 베이스 방향(아래)으로 연장한다.
-ac_j1_shaft_length   = 160;
-ac_j1_shaft_center_z = ac_plate_top_z + 20 - ac_j1_shaft_length / 2;
 
 // ── 조립 정합 검증(fit asserts) ───────────────────────────────────────────
 assert(ac_j2_belt_type == pulley_belt(ac_driven_axis_pulley_type),
@@ -278,17 +273,6 @@ module arm_carriage_assembly() {
                     at_xy(bearing_center, ac_linear_bearing_center_z)
                         linear_bearing(ac_linear_bearing_type);
 
-            // ── J1 Z축 샤프트(lead screw + 가이드 샤프트) — 고정 가이드. explode에서 bloom하지 않고 기준으로 남는다.
-            // T8 트라페조이드 리드 스크류(trapezoidal lead screw, Tr8x2) — 리드넛 LSN8x2가 타고 Z 병진. lead·start는 리드넛에서 읽는다.
-            translate([ac_leadnut_center.x, ac_leadnut_center.y, ac_j1_shaft_center_z])
-                leadscrew(leadnut_bore(ac_leadnut_type), ac_j1_shaft_length,
-                          leadnut_lead(ac_leadnut_type),
-                          leadnut_lead(ac_leadnut_type) / leadnut_pitch(ac_leadnut_type));
-            // Ø8 리니어 샤프트(linear shaft, smooth rod) — LM8UU 볼 부싱(ball bushing)이 직선 안내된다. 프로파일 레일이 아니다.
-            for (shaft_center = [ac_left_linear_bearing_center, ac_right_linear_bearing_center])
-                translate([shaft_center.x, shaft_center.y, ac_j1_shaft_center_z])
-                    rod(bearing_rod_dia(ac_linear_bearing_type), ac_j1_shaft_length);
-
             // ── J2 종동축 스택(driven axis stack) ────────────────────────────
             // 하·상 종동축 베어링.
             explode([0, 0, -ac_explode_distance])
@@ -404,8 +388,6 @@ ac_part_labels = [
     ["Carriage plate (J2 link)",   [[-24, 30, ac_plate_top_z]],   "structure", true,  false, 0, ac_col_plate],
     ["Housing (J1 carriage)",      [[-32, -22, ac_housing_z]],    "structure", false, false, 0, ac_col_housing],
     ["J2 hub (upper-arm link) x2", [[ac_driven_axis_center.x, 0, ac_plate_top_z + 3], [ac_driven_axis_center.x, 0, ac_housing_z - 3]], "structure", true, true, 0, ac_col_hub],
-    ["8mm linear shaft x2",        [for (c = [ac_left_linear_bearing_center, ac_right_linear_bearing_center]) [c.x, c.y, ac_plate_top_z + 16]], "structure", false, false, 0, ac_col_steel],
-
     // ── 동적 기성품(dynamic vitamins) — 회전·이동하는 기성품(모터·풀리·벨트·베어링·이송나사)이라 motion으로 둔다. ──
     ["NEMA17 motor",          [[0, 0, ac_plate_top_z + 32]], "motion", false, true,  ac_explode_distance,      ac_col_motor],
     ["GT2x20 motor pulley",   [[0, -8, ac_j2_belt_center_z]], "motion", false, true, -ac_explode_distance,     ac_col_motor_pulley],
@@ -415,8 +397,6 @@ ac_part_labels = [
     ["BB608 (upper)",         [[ac_driven_axis_center.x + 11, 0, ac_plate_driven_axis_ball_bearing_seated_z]], "motion", false, true,  ac_explode_distance, ac_col_bearing],
     ["BB608 (lower)",         [[ac_driven_axis_center.x + 11, 0, ac_housing_driven_axis_ball_bearing_seated_z]], "motion", false, true, -ac_explode_distance, ac_col_bearing],
     ["LM8UU x2",              [for (c = [ac_left_linear_bearing_center, ac_right_linear_bearing_center]) [c.x, c.y, ac_linear_bearing_center_z]], "motion", false, true, -ac_explode_distance, ac_col_bearing],
-    ["T8x2 lead screw",       [[ac_leadnut_center.x, ac_leadnut_center.y, ac_plate_top_z + 16]], "motion", false, false, 0, ac_col_steel],
-
     // ── 체결구(fasteners) — 모든 인스턴스에 지시선을 달아 설명서처럼 전부 가리킨다. 부싱(출력 스페이서)도 체결 보조라 여기 둔다. ──
     [str("M3x20 hex standoff x", len(ac_standoff_centers)),     [for (c = ac_standoff_centers) [c.x, c.y, (ac_plate_z + ac_housing_top_z) / 2]], "fastener", false, true, 0, ac_col_steel],
     [str("M3x16 screw + star washer (top) x", len(ac_standoff_centers)), [for (c = ac_standoff_centers) [c.x, c.y, ac_plate_top_z + 4]], "fastener", false, true,  ac_explode_distance, ac_col_steel],
