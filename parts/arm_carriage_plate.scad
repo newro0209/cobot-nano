@@ -26,6 +26,10 @@ module arm_carriage_plate() {
             // J2 센터링 보스 리세스(centering boss recess) — 가장 깊은 단도 바닥에 1단 숄더를 남기는 동축 공간.
             translate([0, 0, ac_motor_boss_recess_floor_z])
                 cylinder(h = ac_motor_boss_recess_depth + eps, r = ac_motor_boss_recess_radius);
+
+            // J2 모터 샤프트 관통 보어(shaft through-bore) — 뒤집힌 모터 축이 보스 시트 숄더를 지나 판 아래 풀리로 내려간다.
+            translate([0, 0, -eps])
+                cylinder(h = ac_plate_thickness + eps * 2, r = NEMA_shaft_dia(ac_motor_type) / 2 + shaft_clearance / 2);
         }
 
         translate(ac_leadnut_center) {
