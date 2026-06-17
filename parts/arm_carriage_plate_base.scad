@@ -86,27 +86,12 @@ ac_j2_upper_idler_center = [ac_j2_idler_center_x,  ac_j2_idler_center_y];
 ac_j2_lower_idler_center = [ac_j2_idler_center_x, -ac_j2_idler_center_y];
 ac_j2_idler_centers = [ac_j2_upper_idler_center, ac_j2_lower_idler_center];
 
-// ── 스탠드오프(hex standoff) 배치 ─────────────────────────────────────────
+// ── 스탠드오프(hex standoff) 볼트서클 배치 ─────────────────────────────────
 ac_standoff_body_radius            = pillar_od(ac_standoff_type) / 2;
 ac_standoff_screw_clearance_radius = M3_clearance_radius;
 // 벨트 슬롯 양옆에서 벨트가 차지하는 XY 폭 — 벨트 폭 절반 + 스탠드오프 몸통 + 여유.
 ac_j2_belt_xy_keepout = belt_width(pulley_belt(ac_j2_idler_pulley_type)) / 2
                         + ac_standoff_body_radius + component_margin;
-ac_standoff_j1_outer_x  = -ac_z_shaft_center_distance + ac_z_shaft_radius + component_margin / 2;
-ac_standoff_j1_y        = ac_motor_radius - ac_standoff_body_radius - clearance;
-ac_standoff_belt_side_x = ac_j2_idler_slot_center_x - component_margin / 2;
-ac_standoff_belt_side_y = ac_j2_idler_center_y + ac_j2_belt_xy_keepout + component_margin / 2;
-ac_standoff_disc_y      = ac_z_shaft_center_distance;  // 디스크 상하(±90°) — Z 가이드 볼트원(bolt circle)과 같은 반경
-// 6점 분산 — 두 판이 벌어지는 굽힘(splay)을 디스크 후방·상하·링크측에서 고르게 잡는다.
-// 종동축은 숄더 볼트가, 리드넛·아이들러는 각 체결 볼트가 판을 따로 죄므로 스탠드오프는 빈 둘레를 메운다.
-ac_standoff_centers = [
-    [ac_standoff_j1_outer_x,   ac_standoff_j1_y],         // 디스크 후방, 리드넛 양옆
-    [ac_standoff_j1_outer_x,  -ac_standoff_j1_y],
-    [ac_motor_center.x,        ac_standoff_disc_y],       // 디스크 상단(모터 옆)
-    [ac_motor_center.x,       -ac_standoff_disc_y],       // 디스크 하단
-    [ac_standoff_belt_side_x,  ac_standoff_belt_side_y],  // 링크/벨트 양옆
-    [ac_standoff_belt_side_x, -ac_standoff_belt_side_y],
-];
 
 // J2 벨트 경로(belt path)가 차지하는 |y| 한계 — 구동축·아이들러·종동축을 잇는 사다리꼴을 x로 보간한다.
 // ramp_up_x~ramp_down_x 사이는 아이들러 높이로 평평하고, 그 바깥은 모터(x=0)·종동축(x=link_length)으로 선형 감소한다.
@@ -116,27 +101,30 @@ function j2_belt_envelope_y(x, ramp_up_x, ramp_down_x) =
                           / (ac_j2_linear_link_length - ramp_down_x)
      : ac_j2_idler_center_y) + ac_j2_belt_xy_keepout;
 
-// 스탠드오프는 회전·고정 부품과 겹치지 않고, 벨트 경로 밖에 있어야 한다.
-for (standoff_center = ac_standoff_centers) {
-    assert(norm(standoff_center - ac_motor_center) >= ac_motor_radius + ac_standoff_body_radius + clearance,
-           "스탠드오프는 J2 모터 바디 리세스와 겹치면 안 된다");
-    assert(norm(standoff_center - ac_leadnut_center) >= ac_leadnut_flange_recess_radius + ac_standoff_body_radius + clearance,
-           "스탠드오프는 J1 리드넛 플랜지 리세스와 겹치면 안 된다");
-    assert(norm(standoff_center - ac_left_linear_bearing_center) >= ac_linear_bearing_recess_radius + ac_standoff_body_radius + clearance,
-           "스탠드오프는 좌측 LM8UU 리세스와 겹치면 안 된다");
-    assert(norm(standoff_center - ac_right_linear_bearing_center) >= ac_linear_bearing_recess_radius + ac_standoff_body_radius + clearance,
-           "스탠드오프는 우측 LM8UU 리세스와 겹치면 안 된다");
-    assert(norm(standoff_center - ac_driven_axis_center) >= ac_driven_axis_pulley_radius + ac_standoff_body_radius + clearance,
-           "스탠드오프는 J2 종동축 풀리 풋프린트와 겹치면 안 된다");
-    if (standoff_center.x >= ac_motor_center.x && standoff_center.x <= ac_driven_axis_center.x) {
-        // 아이들러를 슬롯 어디로 옮겨도 안전하도록 전체 이동 범위(slot_min~slot_max)의 킵아웃을 본다.
-        assert(abs(standoff_center.y) >= j2_belt_envelope_y(standoff_center.x, ac_j2_idler_slot_min_x, ac_j2_idler_slot_max_x),
-               "스탠드오프는 J2 벨트 슬롯 전체 범위의 XY 킵아웃(keepout) 밖에 있어야 한다");
-        // 현재 아이들러 위치 기준 킵아웃.
-        assert(abs(standoff_center.y) >= j2_belt_envelope_y(standoff_center.x, ac_j2_idler_center_x, ac_j2_idler_center_x),
-               "스탠드오프는 현재 J2 벨트 경로의 XY 킵아웃(keepout) 밖에 있어야 한다");
-    }
-}
+// 스탠드오프 자리 적합(keepout) — 회전·고정 부품(모터·리드넛·LM8UU·종동축 풀리)과 J2 벨트 경로를 모두 비켜나면 참.
+function ac_standoff_clear(c) =
+       norm(c - ac_motor_center)               >= ac_motor_radius + ac_standoff_body_radius + clearance
+    && norm(c - ac_leadnut_center)             >= ac_leadnut_flange_recess_radius + ac_standoff_body_radius + clearance
+    && norm(c - ac_left_linear_bearing_center)  >= ac_linear_bearing_recess_radius + ac_standoff_body_radius + clearance
+    && norm(c - ac_right_linear_bearing_center) >= ac_linear_bearing_recess_radius + ac_standoff_body_radius + clearance
+    && norm(c - ac_driven_axis_center)         >= ac_driven_axis_pulley_radius + ac_standoff_body_radius + clearance
+    && (c.x < ac_motor_center.x || c.x > ac_driven_axis_center.x
+        || (abs(c.y) >= j2_belt_envelope_y(c.x, ac_j2_idler_slot_min_x, ac_j2_idler_slot_max_x)
+         && abs(c.y) >= j2_belt_envelope_y(c.x, ac_j2_idler_center_x, ac_j2_idler_center_x)));
+
+// 스탠드오프 볼트서클(bolt circle) — 캐리지 디스크 가장자리 안쪽 한 반경에 등각 후보를 두고,
+// 회전·고정 부품과 벨트 경로를 침범하는 후보(특히 +x 링크/벨트 통로, −x 리드넛)는 걸러 빈 둘레만 메운다.
+ac_standoff_bolt_circle_radius = ac_outer_radius + 1;
+ac_standoff_candidate_count    = 10;   // 36° 등각 후보 — 키프아웃을 통과하는 점만 실제 스탠드오프가 된다
+ac_standoff_centers = [
+    for (i = [0 : ac_standoff_candidate_count - 1])
+        let(a = i * 360 / ac_standoff_candidate_count,
+            c = ac_standoff_bolt_circle_radius * [cos(a), sin(a)])
+        if (ac_standoff_clear(c)) c
+];
+
+assert(len(ac_standoff_centers) >= 4,
+       "스탠드오프 볼트서클에서 키프아웃을 통과하는 점이 4개 이상이어야 한다 — 반경·후보 수를 조정하라");
 
 module arm_carriage_plate_base() {
     linear_extrude(height = ac_plate_thickness)

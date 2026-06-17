@@ -83,8 +83,8 @@ ac_driven_axis_upper_spacer_height = spacer_height(ac_driven_axis_upper_gap, ac_
 ac_driven_axis_lower_spacer_height = spacer_height(ac_driven_axis_lower_gap, ac_driven_axis_washer_type);
 ac_driven_axis_spacer_outer_radius = 6;
 ac_driven_axis_spacer_inner_radius = screw_radius(ac_driven_axis_shoulder_bolt_type) + shaft_clearance / 2;
-// 표준 규격 길이(off-the-shelf): nyloc까지 닿는 가장 짧은 표준 길이(snap-up). 여분은 너트 아래로 빠진다.
-ac_driven_axis_shoulder_bolt_length = screw_longer_than(ac_plate_top_z - ac_housing_z
+// 표준 규격 길이(off-the-shelf): 양끝 허브를 덮고 nyloc까지 닿는 가장 짧은 표준 길이(snap-up). 여분은 너트 아래로 빠진다.
+ac_driven_axis_shoulder_bolt_length = screw_longer_than(ac_plate_top_z - ac_housing_z + 2 * j2_hub_height()
                                       + washer_thickness(ac_driven_axis_washer_type)
                                       + nut_thickness(ac_driven_axis_locknut_type, nyloc = true));
 
@@ -192,10 +192,10 @@ module arm_carriage_assembly() {
         color(ac_col_housing) translate_z(ac_housing_z) arm_carriage_housing();
         color(ac_col_plate)   translate_z(ac_plate_z)   arm_carriage_plate();
 
-        // J2 상완 허브(upper-arm hub) — 상판 위·하우징 아래로 상완을 연결. J2 회전 출력에 물려 돈다.
+        // J2 상완 허브(upper-arm hub) — 상판 위·하우징 아래로 상완을 연결. 내륜 보스만큼 띄워 회전 내륜에 물려 돈다.
         color(ac_col_hub) {
-            at_xy(ac_driven_axis_center, ac_plate_top_z) j2_hub();
-            at_xy(ac_driven_axis_center, ac_housing_z) rotate([180, 0, 0]) j2_hub();
+            at_xy(ac_driven_axis_center, ac_plate_top_z + j2_hub_boss_height()) j2_hub();
+            at_xy(ac_driven_axis_center, ac_housing_z - j2_hub_boss_height()) rotate([180, 0, 0]) j2_hub();
         }
 
         if (show_hardware) {
@@ -298,9 +298,9 @@ module arm_carriage_assembly() {
                 at_xy(ac_driven_axis_center, ac_plate_driven_axis_ball_bearing_seated_z)
                     ball_bearing(ac_driven_axis_ball_bearing_type);
 
-            // 숄더 볼트(shoulder bolt) — 상·하 베어링·풀리·스페이서 스택을 같은 8mm 숄더 축에 묶는다.
+            // 숄더 볼트(shoulder bolt) — 상·하 허브·베어링·풀리·스페이서 스택을 같은 8mm 숄더 축에 묶는다. 머리는 상부 허브 위에 앉는다.
             explode([0, 0, ac_explode_distance])
-                at_xy(ac_driven_axis_center, ac_plate_top_z + eps)
+                at_xy(ac_driven_axis_center, ac_plate_top_z + j2_hub_height() + eps)
                     screw_and_washer(ac_driven_axis_shoulder_bolt_type, ac_driven_axis_shoulder_bolt_length);
 
             // 종동 풀리(driven pulley) — GT2 60T, 8mm 보어.
@@ -325,11 +325,11 @@ module arm_carriage_assembly() {
 
             // 락너트(locknut) — 하우징 바닥면에서 숄더 볼트를 잠근다.
             explode([0, 0, -ac_explode_distance])
-                at_xy(ac_driven_axis_center, ac_housing_z - washer_thickness(ac_driven_axis_washer_type))
+                at_xy(ac_driven_axis_center, ac_housing_z - j2_hub_height() - washer_thickness(ac_driven_axis_washer_type))
                     washer(ac_driven_axis_washer_type);
             // nyloc 칼라가 아래(바깥)를 향하도록 뒤집어 베어링 면이 와셔에 닿게 한다.
             explode([0, 0, -ac_explode_distance])
-                at_xy(ac_driven_axis_center, ac_housing_z - washer_thickness(ac_driven_axis_washer_type))
+                at_xy(ac_driven_axis_center, ac_housing_z - j2_hub_height() - washer_thickness(ac_driven_axis_washer_type))
                     rotate([180, 0, 0])
                         nut(ac_driven_axis_locknut_type, nyloc = true);
 
@@ -418,9 +418,9 @@ ac_part_labels = [
     ["T8x2 lead screw",       [[ac_leadnut_center.x, ac_leadnut_center.y, ac_plate_top_z + 16]], "motion", false, false, 0, ac_col_steel],
 
     // ── 체결구(fasteners) — 모든 인스턴스에 지시선을 달아 설명서처럼 전부 가리킨다. 부싱(출력 스페이서)도 체결 보조라 여기 둔다. ──
-    ["M3x20 hex standoff x6",              [for (c = ac_standoff_centers) [c.x, c.y, (ac_plate_z + ac_housing_top_z) / 2]], "fastener", false, true, 0, ac_col_steel],
-    ["M3x16 screw + star washer (top) x6", [for (c = ac_standoff_centers) [c.x, c.y, ac_plate_top_z + 4]], "fastener", false, true,  ac_explode_distance, ac_col_steel],
-    ["M3x16 screw + star washer (bot) x6", [for (c = ac_standoff_centers) [c.x, c.y, ac_housing_z - 4]],    "fastener", false, true, -ac_explode_distance, ac_col_steel],
+    [str("M3x20 hex standoff x", len(ac_standoff_centers)),     [for (c = ac_standoff_centers) [c.x, c.y, (ac_plate_z + ac_housing_top_z) / 2]], "fastener", false, true, 0, ac_col_steel],
+    [str("M3x16 screw + star washer (top) x", len(ac_standoff_centers)), [for (c = ac_standoff_centers) [c.x, c.y, ac_plate_top_z + 4]], "fastener", false, true,  ac_explode_distance, ac_col_steel],
+    [str("M3x16 screw + star washer (bot) x", len(ac_standoff_centers)), [for (c = ac_standoff_centers) [c.x, c.y, ac_housing_z - 4]],    "fastener", false, true, -ac_explode_distance, ac_col_steel],
     ["M3 cap screw (motor) x4",            [for (x = NEMA_holes(ac_motor_type)) for (y = NEMA_holes(ac_motor_type)) [x, y, ac_plate_top_z]], "fastener", false, true, -ac_explode_distance, ac_col_steel],
     ["M3 screw + washer (leadnut) x8",     [for (z = [ac_plate_z - 1, ac_housing_z + 1]) for (i = [0 : leadnut_holes(ac_leadnut_type) - 1]) let(a = i * 360 / leadnut_holes(ac_leadnut_type), r = leadnut_hole_pitch(ac_leadnut_type)) [ac_leadnut_center.x + r * cos(a), ac_leadnut_center.y + r * sin(a), z]], "fastener", false, true, -ac_explode_distance, ac_col_steel],
     ["M3 nut (leadnut) x8",                [for (z = [ac_plate_top_z + 1, ac_housing_top_z + 1]) for (i = [0 : leadnut_holes(ac_leadnut_type) - 1]) let(a = i * 360 / leadnut_holes(ac_leadnut_type), r = leadnut_hole_pitch(ac_leadnut_type)) [ac_leadnut_center.x + r * cos(a), ac_leadnut_center.y + r * sin(a), z]], "fastener", false, true, 0, ac_col_steel],
