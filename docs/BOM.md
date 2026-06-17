@@ -7,18 +7,18 @@
 
 | 분류 | 품목 | 사양 / CAD 기준 | 수량 | 비고 |
 |------|------|------------------|------|------|
-| 제작품 | Arm carriage plate | `parts/arm_carriage_plate.scad`, 두께 9mm | 1 | 상부 플레이트 |
-| 제작품 | Arm carriage housing | `parts/arm_carriage_housing.scad`, 두께 9mm | 1 | 하부 플레이트 |
-| 모터 | Stepper motor | `NEMA17_40` | 1 | J2 구동 모터 |
+| 제작품 | Arm carriage top plate | `parts/arm_carriage_top_plate.scad`, 두께 9mm | 1 | 상부 플레이트 |
+| 제작품 | Arm carriage bottom plate | `parts/arm_carriage_bottom_plate.scad`, 두께 9mm | 1 | 하부 플레이트 |
+| 모터 | Stepper motor | `NEMA17_47` | 1 | J2 구동 모터 |
 | 풀리 | Motor pulley | `GT2x20um_pulley` | 1 | 6mm GT2 벨트 |
 | 풀리 | Driven pulley | `GT2x60x8_pulley` (60T, 8mm bore) | 1 | 6mm GT2 벨트 |
 | 풀리 | Idler pulley | `GT2x20_idler_5mm` (5mm 보어 베어링 일체형) | 2 | 대칭 슬롯, M5 축에서 자유 회전 |
 | 벨트 | Timing belt | `GT2x6` | 1 | 길이는 `belt()` 경로에서 산출 |
 | 베어링 | Ball bearing | `BB608` (8×22×7) | 2 | J2 종동축 상하 지지 |
-| 베어링 | Linear bearing | `LM8UU` | 2 | J1 가이드 로드 좌우 |
-| 리드넛 | Leadnut | `LSN8x2` | 2 | 플레이트 1개, 하우징 1개 |
-| 스탠드오프 | Female-female hex pillar | `M3x20_ff_hex_pillar` (길이 20mm) | 6 | 디스크 둘레 6점 분산 |
-| 스크류 | Standoff screw set | M3 cap + washer/star washer, 길이 **16mm** | 12 | 상하 6개씩 |
+| 베어링 | Linear bearing | `LM8UU` | 3 | J1 가이드 로드 3점 지지 |
+| 리드넛 | Leadnut | `LSN8x2` | 1 | 상판 아랫면 시트 |
+| 스탠드오프 | Female-female hex pillar | `M3x25_ff_hex_pillar` (길이 25mm) | 4 | 볼트 서클 4점 분산 |
+| 스크류 | Standoff screw set | M3 cap + washer/star washer | 8 | 상하 4개씩 |
 | 스크류 | Motor screw set | M3 cap + washer/star washer | 4 | NEMA17 체결(NopSCADlib 기본 길이) |
 | 스크류 | Leadnut screw set | M3 cap + washer/star washer + nut, 길이 **12mm** | 4 | 리드넛 2개 기준 |
 | 스크류 | Idler axle screw | M5 cap, 길이 **50mm** | 2 | 아이들러 축(슬롯 장력 조절) |
@@ -35,7 +35,7 @@
 | 항목 | 값 | 출처 변수 |
 |------|----|-----------|
 | 판 두께 (각 1장) | 9 | `ac_plate_thickness` = `bb_width(BB608)` + `seat_shoulder_thickness` |
-| 두 판 사이 간격 | 20 | `ac_standoff_gap` = `pillar_height(M3x20_ff_hex_pillar)` |
+| 두 판 사이 간격 | 25 | `ac_plate_gap` = `pillar_height(standoff_pillar_type)` |
 | 캐리지 외곽 디스크 지름 | 133.6 | `ac_outer_radius`*2 + `component_margin` |
 | J2 링크 길이 (모터축↔종동축) | 100 | `ac_j2_linear_link_length` |
 | 아이들러 중심 / 슬롯 이동 | x=50, y=±13 / 24 | `ac_j2_idler_center_x/y`, `ac_j2_idler_slot_travel` |

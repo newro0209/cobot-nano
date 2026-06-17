@@ -8,7 +8,7 @@
 include <NopSCADlib/core.scad>
 include <NopSCADlib/vitamins/pillars.scad>
 
-// 두 판 사이 스탠드오프(standoff) — 양끝 암나사(female-female) M3x20 육각 필러.
-// NopSCADlib M3x20_hex_pillar는 수-암(top −8, bot +8)이라 한쪽이 수나사 스터드다. 두 판을 위·아래 스크류로 죄려면 양끝 암나사가 필요해 bot도 −8로 둔다.
+// 두 판 사이 스탠드오프(standoff) — 양끝 암나사(female-female) M3x25 육각 필러.
+// NopSCADlib M3x25_hex_pillar는 수-암(top −8, bot +8)이라 한쪽이 수나사 스터드다. 두 판을 위·아래 스크류로 죄려면 양끝 암나사가 필요해 bot도 −8로 둔다.
 //                       code                  style  M  len top_af      bot_af      tl bl colour     colour2 top_thr bot_thr wafer
-M3x20_ff_hex_pillar = ["M3x20_ff_hex_pillar", "hex", 3, 20, 5 / cos(30), 5 / cos(30), 6, 6, "silver",  silver, -8,     -8,     true];
+M3x25_ff_hex_pillar = ["M3x25_ff_hex_pillar", "hex", 3, 25, 5 / cos(30), 5 / cos(30), 6, 6, "silver",  silver, -8,     -8,     true];

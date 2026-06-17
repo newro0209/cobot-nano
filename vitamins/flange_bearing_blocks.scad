@@ -1,4 +1,4 @@
-// vitamins/flange_blocks.scad - Local flange-mount bearing-block family (KFL), not present in NopSCADlib.
+// vitamins/flange_bearing_blocks.scad - Local flange bearing-block family (KFL), not present in NopSCADlib.
 // A KFL flange block bolts flat onto a plate and carries a self-aligning insert ball bearing whose axis is
 // PERPENDICULAR to the flange, so a vertical lead screw runs through it and rotates. NopSCADlib only ships KP pillow
 // blocks (axis parallel to base), so this local family mirrors NopSCADlib's family-per-file vitamin style.
@@ -12,10 +12,10 @@ include <NopSCADlib/core.scad>
 include <NopSCADlib/vitamins/screws.scad>
 include <NopSCADlib/vitamins/ball_bearings.scad>
 
-//                   code      bore  length  width  flange_t  bolt_pitch  bolt_hole_d  bolt_screw     housing_d  height  collar_h  bearing
+//          code      bore  length  width  flange_t  bolt_pitch  bolt_hole_d  bolt_screw     housing_d  height  collar_h  bearing
 KFL08    = ["KFL08",  8,    48,     27,    4.5,      37,         5,           M4_cap_screw,  26,        11.5,   3.5,      BB608];
 
-flange_blocks = [KFL08];
+kfl_flange_bearing_blocks = [KFL08];
 
 function kfl_bore(type)             = type[1];  //! Shaft bore diameter
 function kfl_length(type)           = type[2];  //! Flange overall length a (across the bolt ears)
@@ -45,8 +45,8 @@ module kfl_chamfered_ring(id, od, h, chamfer = 0.8) {
         ]);
 }
 
-module flange_bearing(type) { //! Draw a KFL flange bearing block, flange in XY (z = 0 face mounts down), bore up the Z axis
-    vitamin(str("flange_bearing(", type[0], "): KFL", kfl_bore(type),
+module kfl_flange_bearing_block(type) { //! Draw a KFL flange bearing block, flange in XY (z = 0 face mounts down), bore up the Z axis
+    vitamin(str("kfl_flange_bearing_block(", type[0], "): KFL", kfl_bore(type),
                 " flange bearing block, ", bb_name(kfl_bearing(type)), "-class insert"));
 
     bore      = kfl_bore(type);

@@ -377,7 +377,7 @@ echo(belt_center_distance = gt2_center_distance(driver_teeth, driven_teeth));
 파일 최상단 주석은 먼저 영어 문단으로 파일의 역할과 계층을 설명하고, 바로 뒤에 한국어 요약을 붙인다. 영어 설명은 외부 라이브러리·툴과 함께 읽히는 파일 헤더 역할을 하고, 한국어 요약은 프로젝트 내부 의사결정을 빠르게 확인하기 위한 것이다.
 
 ```scad
-// parts/bearing_seat.scad - Bearing-seat geometry cut into / added to printed plates (NopSCADlib printed-part style).
+// parts/ball_bearing_seat.scad - Ball-bearing seat geometry cut into / added to printed plates (NopSCADlib printed-part style).
 // Dimensions come from a NopSCADlib ball-bearing type so the seat tracks the bought bearing, not a hardcoded number.
 //
 // 베어링을 앉히기 위해 프린트 판재에 깎거나(음형) 덧대는(양형) 제작 형상이다.
@@ -391,8 +391,23 @@ echo(belt_center_distance = gt2_center_distance(driver_teeth, driven_teeth));
 ```scad
 // 외륜 림(outer-race rim)만 단차로 물어, 회전하는 내륜(inner race)과 실드를 건드리지 않는다.
 translate(ac_driven_axis_center)
-    bearing_seat_pocket(ac_driven_axis_ball_bearing_type, bore_depth = ac_plate_thickness, from_top = true);
+    bb_bearing_seat_pocket(ac_driven_axis_ball_bearing_type, part_thickness = ac_plate_thickness, from_top = true);
 ```
+
+### C-4a (MUST) `seat_shoulder_thickness`는 파는 깊이가 아니라 남기는 두께다
+
+포켓·시트에서 `seat_shoulder_thickness`는 **반대쪽에 남길 축방향 지지 두께**다. 카운터보어 또는 리세스 깊이는 `part_thickness - seat_shoulder_thickness`에서 계산해야 하며, 각 단계를 `seat_shoulder_thickness`만큼만 파는 값으로 쓰지 않는다.
+
+```scad
+// 권장: 가장 깊은 리세스 뒤에 shoulder를 남긴다.
+seat_depth = part_thickness - seat_shoulder_thickness;
+cylinder(d = seat_diameter, h = seat_depth + eps);
+
+// 금지: shoulder 두께만큼만 시트를 얕게 판다.
+cylinder(d = seat_diameter, h = seat_shoulder_thickness + eps);
+```
+
+다단 포켓은 얕은 단부터 깊은 단까지 누적 깊이로 계산한다. 예를 들어 모터 시트는 `body_recess_depth + NEMA_boss_height(type) == part_thickness - seat_shoulder_thickness`가 되도록 잡고, 샤프트 보어처럼 실제 관통이 필요한 형상만 남은 shoulder를 통과시킨다.
 
 ### C-5 (SHOULD) 코드 옆 주석은 `대상 용어(구) — 역할/이유(절)` 형식으로 쓴다
 
