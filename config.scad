@@ -13,8 +13,10 @@ include <NopSCADlib/vitamins/linear_bearings.scad>
 include <NopSCADlib/vitamins/leadnuts.scad>
 include <NopSCADlib/vitamins/pillars.scad>
 include <NopSCADlib/vitamins/stepper_motors.scad>
-include <vitamins/screws.scad>   // 로컬 M6_shoulder_screw (+ NopSCADlib screw 패밀리)
-include <vitamins/pulleys.scad>  // 로컬 GT2x60x8_pulley (+ NopSCADlib pulley 패밀리)
+include <vitamins/screws.scad>         // 로컬 M6_shoulder_screw (+ NopSCADlib screw 패밀리)
+include <vitamins/pulleys.scad>        // 로컬 GT2x60x8_pulley (+ NopSCADlib pulley 패밀리)
+include <vitamins/flange_couplers.scad>// 로컬 FC8 플랜지 샤프트 커플러 (NopSCADlib 미수록)
+include <vitamins/flange_blocks.scad>  // 로컬 KFL08 플랜지 베어링 블록 (NopSCADlib 미수록)
 
 // 제조 공차(manufacturing allowance) — 가공/프린트 방식이 바뀌면 여기 한 곳만 고친다.
 clearance           = 0.1;  // 부품 간 일반 끼움 간격(general fit) — 간섭(interference) 방지
