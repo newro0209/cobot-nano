@@ -18,11 +18,10 @@ module base_column_motor_plate() {
             nema_motor_seat_pocket(j1_motor_type, part_thickness = bc_plate_thickness, from_top = true);
 
         // 모터 판도 FC8로 가이드 로드를 잡아, 로드를 상부로 더 뻗힌다.
-        for (center = cc_j1_guide_rod_centers)
-            translate(center)
-                fc_flange_coupling_seat_pocket(j1_flange_coupling_type,
-                                               part_thickness = bc_plate_thickness,
-                                               from_top = true);
+        cc_at_guide_rods()
+            fc_flange_coupling_seat_pocket(j1_flange_coupling_type,
+                                           part_thickness = bc_plate_thickness,
+                                           from_top = true);
     }
 }
 

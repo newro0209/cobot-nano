@@ -38,13 +38,19 @@ cc_j1_guide_rod_centers = [
 
 cc_plate_diameter = cc_j1_axis_bounding_diameter;  // 둥근 판 외곽 = 축 전체 경계 지름
 
+// 가이드 로드 배치(HOC) — 3개 J1 가이드 로드 중심마다 자식을 놓는다(2D 프로파일·3D 부품 공통).
+module cc_at_guide_rods() {
+    for (center = cc_j1_guide_rod_centers)
+        translate(center)
+            children();
+}
+
 // J1 캐리지 판 2D 프로파일 — 둥근 기준 판에 가이드 로드 로브를 더하고, 호출부가 넘긴 외곽(J2 로브 등)을 합친다.
 module cc_plate_with_profile_2d(thickness) {
     round_plate_with_profile_2d(cc_plate_diameter / 2, thickness) {
         // 가이드 로드 로브(lobe) — 각 로드 중심에 점유 원을 둬, 판 외곽이 로드 둘레로 부풀어 베어링·커플링을 감싼다.
-        for (center = cc_j1_guide_rod_centers)
-            translate(center)
-                circle(d = cc_j1_guide_axis_bounding_diameter);
+        cc_at_guide_rods()
+            circle(d = cc_j1_guide_axis_bounding_diameter);
 
         children();
     }

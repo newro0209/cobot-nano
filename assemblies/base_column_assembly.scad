@@ -125,56 +125,52 @@ module bc_j1_flange_bearing_block_lower() {
 
 module bc_j1_guide_rod_couplings_upper() {
     // 상부 FC8 허브는 아래쪽으로 향해, 상부 지지 판에서 내려오는 가이드 로드를 붙잡는다.
-    for (center = cc_j1_guide_rod_centers)
-        translate([center[0], center[1], bc_fc_bottom_seat_z])
+    cc_at_guide_rods()
+        translate_z(bc_fc_bottom_seat_z)
             rotate([180, 0, 0])
                 FC(j1_flange_coupling_type);
 }
 
 module bc_j1_guide_rod_couplings_lower() {
     // 하부 FC8 허브는 위쪽으로 향해, 하부 지지 판에서 올라가는 가이드 로드를 붙잡는다.
-    for (center = cc_j1_guide_rod_centers)
-        translate([center[0], center[1], bc_fc_top_seat_z])
+    cc_at_guide_rods()
+        translate_z(bc_fc_top_seat_z)
             FC(j1_flange_coupling_type);
 }
 
 module bc_j1_guide_rod_couplings_motor() {
     // 모터 판 위 FC8이 가이드 로드 상단을 한 번 더 잡아, 로드가 모터 판 위까지 이어진다.
-    for (center = cc_j1_guide_rod_centers)
-        translate([center[0], center[1], bc_fc_top_seat_z])
+    cc_at_guide_rods()
+        translate_z(bc_fc_top_seat_z)
             FC(j1_flange_coupling_type);
 }
 
 module bc_fc_fasteners_top_side() {
-    for (center = cc_j1_guide_rod_centers)
-        translate(center)
-            fc_screw_positions(j1_flange_coupling_type)
-                translate_z(bc_plate_thickness)
-                    screw_and_washer(bc_fc_screw_type, bc_fc_screw_length);
+    cc_at_guide_rods()
+        fc_screw_positions(j1_flange_coupling_type)
+            translate_z(bc_plate_thickness)
+                screw_and_washer(bc_fc_screw_type, bc_fc_screw_length);
 }
 
 module bc_fc_nuts_bottom_side() {
-    for (center = cc_j1_guide_rod_centers)
-        translate(center)
-            fc_screw_positions(j1_flange_coupling_type)
-                rotate([180, 0, 0])
-                    nut_and_washer(screw_nut(bc_fc_screw_type), false);
+    cc_at_guide_rods()
+        fc_screw_positions(j1_flange_coupling_type)
+            rotate([180, 0, 0])
+                nut_and_washer(screw_nut(bc_fc_screw_type), false);
 }
 
 module bc_fc_fasteners_bottom_side() {
-    for (center = cc_j1_guide_rod_centers)
-        translate(center)
-            fc_screw_positions(j1_flange_coupling_type)
-                rotate([180, 0, 0])
-                    screw_and_washer(bc_fc_screw_type, bc_fc_screw_length);
+    cc_at_guide_rods()
+        fc_screw_positions(j1_flange_coupling_type)
+            rotate([180, 0, 0])
+                screw_and_washer(bc_fc_screw_type, bc_fc_screw_length);
 }
 
 module bc_fc_nuts_top_side() {
-    for (center = cc_j1_guide_rod_centers)
-        translate(center)
-            fc_screw_positions(j1_flange_coupling_type)
-                translate_z(bc_plate_thickness)
-                    nut_and_washer(screw_nut(bc_fc_screw_type), false);
+    cc_at_guide_rods()
+        fc_screw_positions(j1_flange_coupling_type)
+            translate_z(bc_plate_thickness)
+                nut_and_washer(screw_nut(bc_fc_screw_type), false);
 }
 
 module bc_kfl_fasteners_top_side() {
@@ -222,8 +218,8 @@ module bc_j1_shaft_coupling() {
 }
 
 module bc_preview_rods() {
-    for (center = cc_j1_guide_rod_centers)
-        translate([center[0], center[1], bc_preview_guide_rod_bottom_z])
+    cc_at_guide_rods()
+        translate_z(bc_preview_guide_rod_bottom_z)
             rod(smooth_rod_diameter(j1_guide_rod_type),
                 bc_preview_guide_rod_length,
                 center = false);

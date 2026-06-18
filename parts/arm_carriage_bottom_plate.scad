@@ -11,25 +11,15 @@
 
 include <arm_carriage_plate_base.scad>
 use <ball_bearing_seat.scad>
-use <linear_bearing_seat.scad>
 
 module arm_carriage_bottom_plate() {
     difference() {
-        // 뒤쪽(−Y) 로브 = 20T 풀리 슬롯 로브 — 구동 풀리의 Y 방향 이동 범위를 모두 덮는다.
+        // 뒤쪽(−Y) 로브 = 20T 풀리 슬롯 로브 + LM8UU 캡처 칼라(양형, 윗면). 구동 풀리의 Y 이동 범위를 모두 덮는다.
         union() {
             ac_plate_base()
                 ac_drive_pulley_slot_lobe();
 
-            // LM8UU 양형 시트 — 25mm 필러처럼 판 간격이 베어링보다 길 때, 하판 윗면 외곽 칼라로 베어링 OD를 잡는다.
-            if (ac_linear_bearing_boss_height > eps)
-                for (center = cc_j1_guide_rod_centers)
-                    translate(center)
-                        linear_bearing_seat_boss(j1_linear_bearing_type,
-                                                  part_thickness = ac_thickness,
-                                                  height = ac_linear_bearing_boss_height,
-                                                  lip_overlap = ac_linear_bearing_retainer_lip_overlap,
-                                                  lip_height = ac_linear_bearing_retainer_lip_height,
-                                                  from_top = true);
+            ac_linear_bearing_bosses(from_top = true);
         }
 
         // J2 종동 베어링 시트 — 상판(from_top=true)의 Z 미러: 아랫면으로 연다.
@@ -40,13 +30,8 @@ module arm_carriage_bottom_plate() {
         translate([j1_axis_center[0], j1_axis_center[1], -eps])
             cylinder(d = leadnut_bore(j1_leadnut_type) + shaft_clearance, h = ac_thickness + eps * 2);
 
-        // 가이드 로드 LM8UU 시트 — 필러 간격이 베어링보다 짧을 때만 하판 윗면에서 필요한 깊이만 판다.
-        if (ac_linear_bearing_seat_depth > eps)
-            for (center = cc_j1_guide_rod_centers)
-                translate(center)
-                    linear_bearing_seat_pocket(j1_linear_bearing_type, part_thickness = ac_thickness,
-                                               seat_depth = ac_linear_bearing_seat_depth, from_top = true);
-
+        // 가이드 로드 LM8UU 시트(음형, 윗면) — 상판의 Z 미러. 필러 간격이 베어링보다 짧을 때만 깎인다.
+        ac_linear_bearing_seats(from_top = true);
     }
 }
 

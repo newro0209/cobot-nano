@@ -69,95 +69,76 @@ ac_col_driven_pulley  = [0.78, 0.38, 0.18];
 ac_col_belt           = [0.02, 0.02, 0.025];
 ac_col_belt_tooth     = [0.18, 0.18, 0.18];
 
-// 상/하판 간격과 LM8UU 시트 깊이는 arm_carriage_plate_base.scad의 공통 치수를 따른다.
-ac_top_plate_z = ac_thickness + ac_plate_gap;
-ac_pulley_bottom_clearance_z = ac_thickness + clearance / 2;
-ac_pulley_top_clearance_z = ac_top_plate_z - clearance / 2;
-ac_motor_face_inset = nema_motor_seat_face_inset(j2_motor_type, ac_thickness);
-ac_motor_face_local_z = ac_thickness - ac_motor_face_inset;
-ac_motor_face_z = ac_top_plate_z + ac_motor_face_local_z;
-ac_motor_shaft_tip_z = ac_motor_face_z - NEMA_shaft_length(j2_motor_type);
-ac_drive_pulley_bottom_rel_z = pulley_offset(j2_drive_pulley_type);
-ac_drive_pulley_top_rel_z = pulley_offset(j2_drive_pulley_type) + pulley_height(j2_drive_pulley_type);
-ac_pulley_center_min_for_plates = max(
-    ac_pulley_bottom_clearance_z - pulley_offset(j2_drive_pulley_type),
-    ac_pulley_bottom_clearance_z - pulley_offset(j2_driven_pulley_type)
-);
-ac_pulley_center_max_for_plates = min(
-    ac_pulley_top_clearance_z - (pulley_offset(j2_drive_pulley_type) + pulley_height(j2_drive_pulley_type)),
-    ac_pulley_top_clearance_z - (pulley_offset(j2_driven_pulley_type) + pulley_height(j2_driven_pulley_type))
-);
-ac_drive_pulley_center_min_for_shaft = ac_motor_shaft_tip_z - ac_drive_pulley_bottom_rel_z + clearance / 2;
-ac_drive_pulley_center_max_for_shaft = ac_motor_face_z - ac_drive_pulley_top_rel_z - clearance / 2;
-ac_belt_center_z = max(ac_pulley_center_min_for_plates, ac_drive_pulley_center_min_for_shaft) + eps;
+// 스택 높이 좌표 — 상판 윗면, 모터 페이스(상판 윗면에서 내려앉음), 모터 샤프트 끝.
+ac_top_plate_z        = ac_thickness + ac_plate_gap;
+ac_motor_face_local_z = ac_thickness - nema_motor_seat_face_inset(j2_motor_type, ac_thickness);
+ac_motor_face_z       = ac_top_plate_z + ac_motor_face_local_z;
+ac_motor_shaft_tip_z  = ac_motor_face_z - NEMA_shaft_length(j2_motor_type);
+
+// 풀리 공통 평면 Z(belt center) — 구동·종동 풀리가 같은 높이에서 물려야 하므로, 두 풀리의 offset/height와
+// 모터 샤프트 끝, 상/하판 안쪽 클리어런스를 모두 만족하는 가용 구간의 하한을 잡는다(상한 _max는 assert 검증용).
+function ac_belt_center_z_min() =
+    let(bottom_clear = ac_thickness + clearance / 2)
+    max(bottom_clear - pulley_offset(j2_drive_pulley_type),
+        bottom_clear - pulley_offset(j2_driven_pulley_type),
+        ac_motor_shaft_tip_z - pulley_offset(j2_drive_pulley_type) + clearance / 2);
+function ac_belt_center_z_max() =
+    let(top_clear  = ac_top_plate_z - clearance / 2,
+        drive_top  = pulley_offset(j2_drive_pulley_type) + pulley_height(j2_drive_pulley_type))
+    min(top_clear - drive_top,
+        top_clear - (pulley_offset(j2_driven_pulley_type) + pulley_height(j2_driven_pulley_type)),
+        ac_motor_face_z - drive_top - clearance / 2);
+
+ac_belt_center_z        = ac_belt_center_z_min() + eps;
 ac_drive_pulley_local_z = ac_belt_center_z - ac_top_plate_z;
 ac_drive_pulley_screw_z = ac_belt_center_z + pulley_offset(j2_drive_pulley_type) + pulley_screw_z(j2_drive_pulley_type);
 
-// 체결 부품(fastener) 길이 — 판을 지나 상대 부품에 무는 길이를 판 두께·스택 높이에서 계산한다(하드코딩 금지).
-// 스탠드오프 볼트: 판 두께를 지나 ff 필러에 약 6mm 체결되는 표준 길이.
-ac_standoff_screw_length = screw_longer_than(ac_thickness + 6);
-// J2 숄더 볼트: 숄더부(shoulder)가 상단 플랜지 커플링 위(머리 리테이너)부터 하단 플랜지 커플링 아래(나사산 시작)까지
-// 스택 전체를 관통한다 — 양끝 FC가 8mm 숄더를 물어야 하므로 판 스택 높이에 FC 높이를 위·아래로 한 번씩(2×fc_height) 더한다.
-// 머리 와셔 두께만큼 더해 나사산이 하단 FC 바깥면에서 시작하도록 한다(screw()는 숄더 길이를 length로 받고 나사산은 그 아래에 붙인다).
+// 체결 부품(fastener) 길이 — 판 두께·스택 높이에서 계산한다(하드코딩 금지).
+ac_standoff_screw_length = screw_longer_than(ac_thickness + 6);   // 판 두께 지나 ff 필러에 ~6mm 체결
+// J2 숄더 볼트 — 양끝 FC가 8mm 숄더를 물도록 판 스택 높이에 FC 높이를 위·아래(2×) + 머리 와셔를 더해, 나사산이 하단 FC 바깥면에서 시작.
 ac_j2_shoulder_length = ac_top_plate_z + ac_thickness
                         + 2 * fc_height(j2_driven_flange_coupling_type)
                         + washer_thickness(screw_washer(j2_driven_shoulder_screw_type));
 
-function ac_timing_belt_path(motor_center) = [
-    [motor_center.x, motor_center.y, j2_drive_pulley_type],
-    [j2_driven_axis_center.x, j2_driven_axis_center.y, j2_driven_pulley_type]
-];
+ac_timing_belt_type  = pulley_belt(j2_drive_pulley_type);
+ac_timing_belt_pitch = belt_pitch(ac_timing_belt_type);
 
-function ac_j2_belt_center_distance(motor_center) =
-    sqrt(pow(motor_center.x - j2_driven_axis_center.x, 2) +
-         pow(motor_center.y - j2_driven_axis_center.y, 2));
+// fraction(0=near~1=far)에서의 벨트 경로·중심거리·길이 — min/current/max 병렬 변수 대신 함수로 도출한다(P-4).
+function ac_belt_path(fraction) =
+    let(m = ac_j2_motor_center_at(fraction))
+    [[m.x, m.y, j2_drive_pulley_type],
+     [j2_driven_axis_center.x, j2_driven_axis_center.y, j2_driven_pulley_type]];
+function ac_belt_distance(fraction) = norm(ac_j2_motor_center_at(fraction) - j2_driven_axis_center);
+function ac_belt_length(fraction)   = belt_length(ac_timing_belt_type, ac_belt_path(fraction));
 
-ac_timing_belt_type         = pulley_belt(j2_drive_pulley_type);
-ac_timing_belt_path_min     = ac_timing_belt_path(ac_j2_motor_center_at(0));
-ac_timing_belt_path_current = ac_timing_belt_path(ac_j2_motor_position);
-ac_timing_belt_path_max     = ac_timing_belt_path(ac_j2_motor_center_at(1));
-
-ac_j2_belt_distance_min         = ac_j2_belt_center_distance(ac_j2_motor_center_at(0));
-ac_j2_belt_distance_current     = ac_j2_belt_center_distance(ac_j2_motor_position);
-ac_j2_belt_distance_max         = ac_j2_belt_center_distance(ac_j2_motor_center_at(1));
-
-ac_timing_belt_length_min     = belt_length(ac_timing_belt_type, ac_timing_belt_path_min);
-ac_timing_belt_length_current = belt_length(ac_timing_belt_type, ac_timing_belt_path_current);
-ac_timing_belt_length_max     = belt_length(ac_timing_belt_type, ac_timing_belt_path_max);
-ac_timing_belt_pitch          = belt_pitch(ac_timing_belt_type);
-ac_timing_belt_standard_min   = ceil(ac_timing_belt_length_min / ac_timing_belt_pitch) * ac_timing_belt_pitch;
-ac_timing_belt_standard_max   = floor(ac_timing_belt_length_max / ac_timing_belt_pitch) * ac_timing_belt_pitch;
-ac_timing_belt_standard_mid   = round(ac_timing_belt_length_current / ac_timing_belt_pitch) * ac_timing_belt_pitch;
+// GT2 폐루프 표준 벨트 후보(BOM 참조) — near는 올림, far는 내림, current는 반올림한 피치 배수.
+ac_timing_belt_standard_min = ceil (ac_belt_length(0) / ac_timing_belt_pitch) * ac_timing_belt_pitch;
+ac_timing_belt_standard_max = floor(ac_belt_length(1) / ac_timing_belt_pitch) * ac_timing_belt_pitch;
+ac_timing_belt_standard_mid = round(ac_belt_length(ac_j2_motor_slot_fraction) / ac_timing_belt_pitch) * ac_timing_belt_pitch;
 
 echo(str("J2 belt pulley center distance min/current/max = ",
-         ac_j2_belt_distance_min, " / ",
-         ac_j2_belt_distance_current, " / ",
-         ac_j2_belt_distance_max, " mm"));
+         ac_belt_distance(0), " / ", ac_belt_distance(ac_j2_motor_slot_fraction), " / ", ac_belt_distance(1), " mm"));
 echo(str("J2 timing belt length min/current/max = ",
-         ac_timing_belt_length_min, " / ",
-         ac_timing_belt_length_current, " / ",
-         ac_timing_belt_length_max, " mm"));
+         ac_belt_length(0), " / ", ac_belt_length(ac_j2_motor_slot_fraction), " / ", ac_belt_length(1), " mm"));
 echo(str("J2 GT2 closed-loop belt usable standard range = ",
-         ac_timing_belt_standard_min, " .. ",
-         ac_timing_belt_standard_max, " mm, nominal ",
-         ac_timing_belt_standard_mid, " mm"));
+         ac_timing_belt_standard_min, " .. ", ac_timing_belt_standard_max, " mm, nominal ", ac_timing_belt_standard_mid, " mm"));
 
 assert(ac_timing_belt_type == pulley_belt(j2_driven_pulley_type),
        "J2 구동 풀리와 종동 풀리는 같은 벨트 타입이어야 한다");
 assert(!is_list(NEMA_shaft_length(j2_motor_type)), "J2 모터 샤프트 길이는 숫자여야 한다");
-assert(ac_belt_center_z < min(ac_pulley_center_max_for_plates, ac_drive_pulley_center_max_for_shaft),
+assert(ac_belt_center_z < ac_belt_center_z_max(),
        "모터 샤프트와 상/하판 사이에 공통 풀리 높이를 잡을 공간이 있어야 한다");
 assert(ac_drive_pulley_screw_z > ac_motor_shaft_tip_z,
        "J2 구동 풀리 세트스크류 위치는 모터 샤프트 끝보다 위에 있어야 한다");
 assert(ac_belt_center_z + min(
            pulley_offset(j2_drive_pulley_type),
            pulley_offset(j2_driven_pulley_type)
-       ) > ac_pulley_bottom_clearance_z,
+       ) > ac_thickness + clearance / 2,
        "풀리는 하판 윗면과 간섭하지 않아야 한다");
 assert(ac_belt_center_z + max(
            pulley_height(j2_drive_pulley_type) + pulley_offset(j2_drive_pulley_type),
            pulley_height(j2_driven_pulley_type) + pulley_offset(j2_driven_pulley_type)
-       ) < ac_pulley_top_clearance_z,
+       ) < ac_top_plate_z - clearance / 2,
        "풀리는 상판 아랫면과 간섭하지 않아야 한다");
 
 // 부품별 분해를 위해 안착 부품을 한 부품당 한 모듈로 둔다(좌표는 각 판 베이스 기준 로컬, 호출부에서 판 프레임+분해 오프셋을 씌운다).
@@ -194,8 +175,8 @@ module ac_j2_drive_pulley() {
 
 module ac_shared_linear_bearings() {
     // LM8UU — 필러 간격 중앙에 두며, 시트 깊이가 있으면 상/하판 시트가 양끝을 물고 없으면 축방향 여유를 둔다.
-    for (center = cc_j1_guide_rod_centers)
-        translate([center[0], center[1], ac_thickness + ac_plate_gap / 2])
+    cc_at_guide_rods()
+        translate_z(ac_thickness + ac_plate_gap / 2)
             linear_bearing(j1_linear_bearing_type);
 }
 
@@ -251,11 +232,8 @@ module ac_j2_driven_flange_coupling_bottom() {
             FC(fc);
 }
 
-// J1 리드너트 플랜지 고정 — 너트 플랜지가 상판 아랫면(z=0)에 묻혀 노출면이 판 바닥과 flush다. 시트가 플랜지 홀을 판 전체로
-// 관통 클리어런스 가공하므로, 플랜지 아랫면에서 머리+와셔로 죄고 판을 관통해 상판 윗면 와셔+너트로 고정한다(상판 그룹).
-// 고정 스크류 타입은 리드너트 타입이 정하므로 leadnut_screw 접근자로 읽는다(별도 config 선택값 없음).
-// 분해 시 볼트(아래)와 너트(위)가 반대 방향으로 빠지도록 두 모듈로 나눈다. leadnut_screw_positions는 너트 프레임에서
-// z=flange_t에 자식을 두므로, 공통 위치 헬퍼에서 판 바닥면(z=0) 기준으로 되돌린다.
+// J1 리드너트 플랜지 고정 — 플랜지가 상판 아랫면(z=0)에 묻혀, 아랫면에서 머리+와셔로 죄고 판을 관통해 윗면 와셔+너트로 고정한다.
+// 분해 시 볼트(아래)·너트(위)가 반대로 빠지게 두 모듈로 나눈다. leadnut_screw_positions는 z=flange_t 기준이라 판 바닥(z=0)으로 되돌린다.
 module ac_j1_leadnut_flange_positions() {
     translate(j1_axis_center)
         leadnut_screw_positions(j1_leadnut_type)
@@ -286,7 +264,7 @@ module ac_shared_pulleys() {
 module ac_timing_belt() {
     translate_z(ac_belt_center_z)
         belt(ac_timing_belt_type,
-             ac_timing_belt_path_current,
+             ac_belt_path(ac_j2_motor_slot_fraction),
              belt_colour = ac_col_belt,
              tooth_colour = ac_col_belt_tooth);
 }

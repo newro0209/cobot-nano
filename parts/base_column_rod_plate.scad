@@ -20,11 +20,10 @@ module base_column_rod_plate(seat_from_top = true) {
                                              from_top = seat_from_top);
 
         // 3개 가이드 로드 FC8 시트.
-        for (center = cc_j1_guide_rod_centers)
-            translate(center)
-                fc_flange_coupling_seat_pocket(j1_flange_coupling_type,
-                                               part_thickness = bc_plate_thickness,
-                                               from_top = seat_from_top);
+        cc_at_guide_rods()
+            fc_flange_coupling_seat_pocket(j1_flange_coupling_type,
+                                           part_thickness = bc_plate_thickness,
+                                           from_top = seat_from_top);
     }
 }
 
