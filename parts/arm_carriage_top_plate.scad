@@ -25,6 +25,8 @@ module arm_carriage_top_plate() {
                         linear_bearing_seat_boss(j1_linear_bearing_type,
                                                   part_thickness = ac_thickness,
                                                   height = ac_linear_bearing_boss_height,
+                                                  lip_overlap = ac_linear_bearing_retainer_lip_overlap,
+                                                  lip_height = ac_linear_bearing_retainer_lip_height,
                                                   from_top = false);
         }
 

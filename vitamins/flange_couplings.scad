@@ -6,13 +6,14 @@
 // 로컬 플랜지 커플링(flange coupling) 패밀리 — NopSCADlib에 없어 새로 둔다.
 // 플랜지 커플링은 중앙 허브(hub)로 매끈 봉을 멈춤나사(grub screw)로 죄고, 볼트원(bolt circle)이 있는 원형 플랜지를 낸다.
 // 플랜지를 판에 평면 체결하면 봉이 판에 수직으로 고정된다 — 여기선 가이드 로드 끝을 단판에 고정한다.
-// 치수는 일반 8mm 플랜지 커플링 공칭값(nominal) — 실제 구매 전 공급사 도면으로 확인한다.
+// 치수는 공급사 실측 스펙 기준 — bore 8(Inner Dia), hub_d 16(Cylindrical Dia), 전체 높이 13(Overall Height=flange_t+hub_h),
+// flange_d 32(Bottom Dia), bolt_circle 26(Fixed Hole Distance), 고정 나사 M4. flange_t/hub_h 분할은 가정값(합=13).
 
 include <NopSCADlib/core.scad>
 include <NopSCADlib/vitamins/screws.scad>
 
 //                code    bore  flange_d  flange_t  bolt_circle  bolt_count  bolt_screw     hub_d  hub_h  grub_screw
-FC8      = ["FC8",   8,    22,       5,        16,          4,          M4_cap_screw,  13,    8,     M4_grub_screw];
+FC8      = ["FC8",   8,    32,       5,        26,          4,          M4_cap_screw,  16,    8,     M4_grub_screw];
 
 flange_couplings = [FC8];
 

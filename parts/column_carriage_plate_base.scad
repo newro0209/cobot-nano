@@ -16,6 +16,8 @@ cc_j1_drive_axis_bounding_diameter = max(NEMA_radius(j1_motor_type) * 2,
                                                 kfl_length(j1_flange_bearing_block_type)
                                             ) + component_margin;
 // 가이드 로드 1개 경계 지름 — LM8UU 직선 베어링과 FC8 플랜지 중 큰 쪽에 여유를 더한, 로드별 점유 원 지름.
+// 주의: 캐리지 자체엔 로드에 LM8UU(15mm)만 타지만, 이 블랭크는 단판(end plate)과 공유한다 — 단판은 로드 끝을 FC8 플랜지(현 32mm)로
+// 무므로 그쪽이 지배해 점유 원이 38mm로 커진다. 캐리지 단독 기준으론 과하지만, 단판과 외곽을 맞추려 일부러 둘의 큰 값으로 둔다.
 cc_j1_guide_axis_bounding_diameter = max(bearing_dia(j1_linear_bearing_type),
                                                 fc_flange_diameter(j1_flange_coupling_type)
                                             ) + component_margin;

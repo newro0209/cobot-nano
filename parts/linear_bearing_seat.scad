@@ -33,27 +33,45 @@ module linear_bearing_seat_pocket(type, part_thickness, seat_depth = undef, shou
 }
 
 //! 선형 베어링 시트(linear-bearing seat) 양형(positive) — 리세스와 반대로 판 안쪽으로 솟은 외곽 칼라.
-//! 베어링 OD 안쪽은 비워 두고, OD보다 큰 바깥 림만 돌출시켜 베어링 외경을 감싼다.
-module linear_bearing_seat_boss(type, part_thickness, height, wall = min_printed_feature, from_top = false) {
+//! 베어링 OD 안쪽은 비워 두되, lip_overlap이 있으면 끝단에 얇은 걸림턱을 둬 베어링 끝면 외곽을 잡는다.
+module linear_bearing_seat_boss(type, part_thickness, height, wall = min_printed_feature,
+                                lip_overlap = 0, lip_height = undef, from_top = false) {
     collar_id = bearing_dia(type) + bearing_clearance;
     collar_od = collar_id + 2 * wall;
+    retainer_lip_h = min(is_undef(lip_height) ? height : lip_height, height);
+    retainer_lip_id = collar_id - 2 * lip_overlap;
+    rod_clearance_d = bearing_rod_dia(type) + shaft_clearance;
 
     assert(height > 0, "height는 0보다 커야 한다");
     assert(wall > 0, "wall은 0보다 커야 한다");
+    assert(lip_overlap >= 0, "lip_overlap은 0 이상이어야 한다");
+    assert(retainer_lip_h >= 0, "lip_height는 0 이상이어야 한다");
     assert(collar_od > collar_id, "linear bearing boss collar OD는 ID보다 커야 한다");
+    assert(retainer_lip_id > rod_clearance_d,
+           "linear bearing retainer lip ID는 가이드 로드 클리어런스보다 커야 한다");
 
-    module boss() {
-        linear_extrude(height = height + eps)
-            difference() {
-                circle(d = collar_od);
-                circle(d = collar_id);
-            }
+    module boss(plate_side_at_top) {
+        union() {
+            linear_extrude(height = height + eps)
+                difference() {
+                    circle(d = collar_od);
+                    circle(d = collar_id);
+                }
+
+            if (lip_overlap > eps && retainer_lip_h > eps)
+                translate_z(plate_side_at_top ? height - retainer_lip_h : 0)
+                    linear_extrude(height = retainer_lip_h + eps)
+                        difference() {
+                            circle(d = collar_id);
+                            circle(d = retainer_lip_id);
+                        }
+        }
     }
 
     if (from_top)
-        translate_z(part_thickness - eps) boss();
+        translate_z(part_thickness - eps) boss(false);
     else
-        translate_z(-height) boss();
+        translate_z(-height) boss(true);
 }
 
 // 미리보기(preview) — 시험 블록 양쪽에 깎은 선형 베어링 시트(음형): 왼쪽 바닥 열림, 오른쪽 윗면 열림.

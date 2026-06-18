@@ -16,6 +16,7 @@ include <NopSCADlib/vitamins/shaft_couplings.scad>
 include <vitamins/pillars.scad>               // 로컬 M3x25_ff_hex_pillar (+ NopSCADlib pillar 패밀리)
 include <vitamins/screws.scad>                // 로컬 M6_shoulder_screw (+ NopSCADlib screw 패밀리)
 include <vitamins/pulleys.scad>               // 로컬 GT2x60x8_pulley (+ NopSCADlib pulley 패밀리)
+include <vitamins/rods.scad>                  // 로컬 J1_guide_rod / T8x2_lead_screw (+ NopSCADlib rod 모듈)
 include <vitamins/flange_couplings.scad>      // 로컬 FC8 플랜지 커플링 (NopSCADlib 미수록)
 include <vitamins/flange_bearing_blocks.scad> // 로컬 KFL08 플랜지 베어링 블록 (NopSCADlib 미수록)
 
@@ -38,13 +39,28 @@ j1_axis_center = [0, 0];
 // 로드 양끝은 플랜지 커플링으로 단판(end plate)에 수직 고정된다.
 j1_motor_type                = NEMA17_34;     // Z 이송 구동 모터
 j1_shaft_coupling_type       = SC_5x8_rigid;  // 모터 5mm 축 ↔ 리드스크류 8mm 축 강성 직결
+j1_lead_screw_type           = T8x2_lead_screw; // T8x2 리드스크류 — NopSCADlib leadscrew() 렌더 사양
 j1_leadnut_type              = LSN8x2;         // T8x2 리드너트 — 회전을 병진으로 변환(리드 2mm/rev)
 j1_flange_bearing_block_type = KFL08;          // 리드스크류 회전을 받는 플랜지 베어링 블록
 j1_linear_bearing_type       = LM8UU;          // 가이드 로드 직선 베어링
+j1_guide_rod_type            = J1_guide_rod;   // LM8UU와 FC8이 공유하는 8mm smooth guide rod
 j1_flange_coupling_type      = FC8;            // 가이드 로드 끝을 단판에 수직 고정하는 커플링
 // 가이드 로드는 LM8UU가 타는 봉이자 FC8이 무는 봉 — 한 봉을 공유하므로 두 부품의 호칭 지름이 같아야 한다.
-assert(bearing_rod_dia(j1_linear_bearing_type) == fc_bore(j1_flange_coupling_type), "가이드 로드 플랜지 커플링은 LM8UU 가이드 베어링 지름과 같아야 한다");
-j1_guide_rod_diameter = bearing_rod_dia(j1_linear_bearing_type);  // 봉 지름은 LM8UU 내경에서 읽는다(하드코딩 금지)
+assert(smooth_rod_diameter(j1_guide_rod_type) == bearing_rod_dia(j1_linear_bearing_type),
+       "J1 가이드 로드 지름은 LM8UU 가이드 베어링 지름과 같아야 한다");
+assert(smooth_rod_diameter(j1_guide_rod_type) == fc_bore(j1_flange_coupling_type),
+       "J1 가이드 로드 지름은 FC 플랜지 커플링 보어와 같아야 한다");
+assert(lead_screw_diameter(j1_lead_screw_type) == leadnut_bore(j1_leadnut_type),
+       "J1 리드스크류 지름은 리드너트 보어와 같아야 한다");
+assert(lead_screw_diameter(j1_lead_screw_type) == kfl_bore(j1_flange_bearing_block_type),
+       "J1 리드스크류 지름은 KFL08 베어링 보어와 같아야 한다");
+assert(lead_screw_lead(j1_lead_screw_type) == leadnut_lead(j1_leadnut_type),
+       "J1 리드스크류 리드는 리드너트 리드와 같아야 한다");
+assert(lead_screw_starts(j1_lead_screw_type) == leadnut_lead(j1_leadnut_type) / leadnut_pitch(j1_leadnut_type),
+       "J1 리드스크류 starts는 리드너트 lead/pitch와 같아야 한다");
+assert(lead_screw_length(j1_lead_screw_type) < smooth_rod_length(j1_guide_rod_type),
+       "J1 리드스크류는 가이드 로드보다 짧아야 한다");
+j1_guide_rod_diameter = smooth_rod_diameter(j1_guide_rod_type);
 j1_guide_rod_count    = 3;  // 캐리지 3점 지지 — 단일 봉의 비틀림(yaw)·기울어짐(pitch)을 억제
 
 // ── J2 축(어깨 회전, revolute joint) — GT2 타이밍벨트로 상완을 수평 회전한다 ──
@@ -54,9 +70,10 @@ j2_drive_pulley_type        = GT2x20um_pulley;  // 모터축 20T 구동 풀리(N
 j2_driven_ball_bearing_type = BB608;            // 종동축(어깨 피벗) 회전 지지 베어링
 j2_driven_pulley_type       = GT2x60x8_pulley;  // 60T 종동 풀리 — 20:60 = 3:1 감속
 j2_driven_shoulder_screw_type = M6_shoulder_screw;  // 어깨 피벗 고정 — 숄더부가 BB608 보어를 채우고 끝 나사산에 락너트가 물린다
+j2_driven_flange_coupling_type = FC8;          // 어깨축 상/하단 링크 마운트 — 허브가 숄더 봉을 죄고 플랜지가 상/하 암 링크를 무다
 
 // J1(중심축)에서 J2(어깨축)까지 수평 거리 — 캐리지 판이 두 축을 잇는 길이(기준 치수).
-shoulder_mount_link_length = 70;
+shoulder_mount_link_length = 80;
 
 // J2 어깨축 중심 — J1 원점에서 +Y로 링크 길이만큼 떨어진 좌표.
 j2_driven_axis_center = [0, shoulder_mount_link_length];

@@ -1,8 +1,9 @@
 // parts/arm_carriage_plate_base.scad - Shared blank for the arm-carriage plates (NopSCADlib printed-part style).
-// Extends the column-carriage round blank with a stadium arm reaching out to the J2 shoulder axis, then cuts the
-// guide-rod through-holes and the J2 shoulder-bolt bore. Top/bottom plates include this and add their own seats.
+// Extends the column-carriage round blank with the shoulder-mount link (SHOULDER_MOUNT_LINK; a stadium-shaped arm)
+// reaching out to the J2 shoulder axis, then cuts the guide-rod through-holes and the J2 shoulder-bolt bore.
+// Top/bottom plates include this and add their own seats.
 //
-// 암 캐리지 판 공유 블랭크 — 컬럼 캐리지 둥근 블랭크에 J2 어깨축까지 뻗는 스타디움(stadium) 팔을 더하고,
+// 암 캐리지 판 공유 블랭크 — 컬럼 캐리지 둥근 블랭크에 J2 어깨축까지 뻗는 어깨 마운트 링크(shoulder mount link, 스타디움 형상)를 더하고,
 // 가이드 로드 관통홀과 J2 숄더 볼트 보어를 깎는다. 상·하판은 이 파일을 include해 각자의 시트를 추가한다.
 
 include <column_carriage_plate_base.scad>
@@ -12,10 +13,12 @@ use <../utils/placement.scad>
 ac_thickness = max(bb_width(j2_driven_ball_bearing_type)) + seat_shoulder_thickness;
 
 // J2 로브(lobe) 지름 — 어깨축에서 겹쳐 도는 종동 베어링과 종동 풀리 중 큰 쪽을 감싸야 하므로 둘의 큰 값으로 잡는다.
+// component_margin은 부품 가장자리에서 판 가장자리까지 "반경 방향으로" 남길 살이다(center_distance가 부품-부품 간격에
+// 주는 full margin과 일관). 지름 기준이므로 반경당 margin을 남기려면 2×component_margin을 더한다.
 ac_j2_driven_axis_bounding_diameter = max(
     bb_diameter(j2_driven_ball_bearing_type),
     pulley_flange_dia(j2_driven_pulley_type)
-) + component_margin;
+) + 2 * component_margin;
 // 구동 풀리 최대 외경 — 치형 외경(pulley_od)보다 플랜지(pulley_flange_dia)가 크므로, 마진이 플랜지에 남으려면 큰 쪽을 기준으로 잡는다.
 ac_j2_drive_pulley_outer_dia = max(
     pulley_od(j2_drive_pulley_type),
@@ -23,10 +26,10 @@ ac_j2_drive_pulley_outer_dia = max(
 );
 ac_j2_motor_slot_bounding_diameter = max(
     ac_j2_driven_axis_bounding_diameter,
-    NEMA_radius(j2_motor_type) * 2 + component_margin,
-    ac_j2_drive_pulley_outer_dia + component_margin
+    NEMA_radius(j2_motor_type) * 2 + 2 * component_margin,
+    ac_j2_drive_pulley_outer_dia + 2 * component_margin
 );
-ac_j2_drive_pulley_slot_bounding_diameter = ac_j2_drive_pulley_outer_dia + component_margin;
+ac_j2_drive_pulley_slot_bounding_diameter = ac_j2_drive_pulley_outer_dia + 2 * component_margin;
 
 // J2 모터 슬롯 — 아이들러 없이 모터 전체를 −Y 방향으로 밀어 GT2 벨트 장력을 조절한다.
 // 모터 중심은 명명 위치 대신 정규화 함수 하나로 표현한다: fraction 0=near, 1=far.
@@ -44,8 +47,13 @@ ac_j2_motor_slot_vector = ac_j2_motor_center_at(1) - ac_j2_motor_center_at(0);
 ac_plate_gap = pillar_height(standoff_pillar_type);
 ac_linear_bearing_seat_depth = max((bearing_length(j1_linear_bearing_type) - ac_plate_gap) / 2, 0);
 ac_linear_bearing_axial_clearance = max(ac_plate_gap - bearing_length(j1_linear_bearing_type), 0);
-ac_linear_bearing_boss_height = ac_linear_bearing_axial_clearance / 2;
+ac_linear_bearing_capture_depth = 2.5;
+ac_linear_bearing_boss_height = ac_linear_bearing_axial_clearance > eps ? ac_linear_bearing_capture_depth : 0;
+ac_linear_bearing_retainer_lip_overlap = 0.6;
+ac_linear_bearing_retainer_lip_height = min(ac_linear_bearing_axial_clearance / 2, 0.5);
 assert(ac_linear_bearing_seat_depth <= ac_thickness, "LM 베어링 시트 깊이는 판 두께 이하여야 한다");
+assert(2 * ac_linear_bearing_boss_height < ac_plate_gap,
+       "상/하판 LM 베어링 캡처 칼라는 판 사이에서 서로 닿지 않아야 한다");
 
 // 스탠드오프 볼트 서클(standoff bolt circle) — 모터 슬롯과 간섭하는 모터 쪽 인덱스를 제외할 수 있게 한다.
 ac_standoff_count              = 8;
@@ -89,7 +97,7 @@ module ac_drive_pulley_slot_lobe() {
 module ac_plate_base() {
     difference() {
         cc_plate_with_profile_2d(ac_thickness) {
-            // 스타디움 팔(stadium arm) — J1 중심 원과 J2 어깨축 원을 hull로 이어, 판이 두 축을 잇는 외팔보로 뻗는다.
+            // 어깨 마운트 링크(shoulder mount link) — J1 중심 원과 J2 어깨축 원을 hull로 이어(스타디움 형상), 판이 두 축을 잇는 외팔보로 뻗는다.
             hull() {
                 circle(d = ac_j2_driven_axis_bounding_diameter);
                 translate(j2_driven_axis_center) circle(d = ac_j2_driven_axis_bounding_diameter);

@@ -22,8 +22,9 @@
 | 스탠드오프 | Female-female hex pillar | `M3x25_ff_hex_pillar`, M3 x 25mm | 4 | 활성 인덱스 `[0, 1, 3, 4]`; 모터 슬롯 쪽 `[2, 5, 6, 7]` 제외 |
 | 체결류 | Standoff screws | `M3_cap_screw`, L=16mm + washer | 8 | 필러 4개 x 상/하 2개 |
 | 체결류 | Leadnut flange screws | `leadnut_screw(LSN8x2)`, L=16mm + washer + nut | 4 | 리드너트 플랜지 체결 |
-| 체결류 | J2 shoulder screw | `M6_shoulder_screw`, shoulder dia 8mm, CAD shoulder length 44.6mm + `M8_washer` (머리 밑) | 1 | BB608 보어를 관통하는 J2 고정 피벗 |
-| 체결류 | J2 shoulder locknut | `M6_nut` (nyloc) + `M6_washer` | 1 set | 숄더 스크류 하단 고정 |
+| 체결류 | J2 shoulder screw | `M6_shoulder_screw`, shoulder dia 8mm, CAD shoulder length 70.6mm + `M8_washer` (머리 밑) | 1 | BB608 보어와 상/하 FC 허브를 관통하는 J2 고정 피벗 |
+| 체결류 | J2 shoulder locknut | `M6_nut` (nyloc) + `M6_washer` | 1 set | 하단 FC 아래에서 스택 축방향 고정 |
+| 커플링 | J2 driven flange coupling | `FC8`, 8mm bore, 4×M4 볼트원 | 2 | 어깨축 상/하단 링크 마운트, 숄더 봉을 grub screw로 죔, 로컬 vitamin |
 
 ## Configured J1 Interface
 
@@ -52,7 +53,7 @@
 | J2 GT2 표준 폐루프 벨트 후보 | 298..312mm, nominal 306mm | `ac_timing_belt_standard_*` echo |
 | 스탠드오프 체결 스크류 길이 | 16mm | `ac_standoff_screw_length` |
 | 리드너트 체결 스크류 길이 | 16mm | `screw_length(leadnut_screw(j1_leadnut_type), ac_thickness, 2, nut = true)` |
-| J2 숄더 길이 계산값 | 44.6mm | `ac_j2_shoulder_length` |
+| J2 숄더 길이 계산값 | 70.6mm | `ac_j2_shoulder_length` (판 스택 + 2×`fc_height(FC8)` + 머리 와셔) |
 
 ## Local Vitamins
 
@@ -68,5 +69,5 @@
 
 - J2 벨트 장력은 아이들러가 아니라 `ac_j2_motor_slot_travel` 범위에서 모터 전체를 -Y 방향으로 이동해 조절합니다.
 - `GT2x60x8_pulley`, `M6_shoulder_screw`, `M3x25_ff_hex_pillar`, `KFL08`, `FC8`은 프로젝트 로컬 vitamin입니다.
-- `M6_shoulder_screw`의 44.6mm는 CAD 계산 shoulder 길이입니다. 실제 구매 규격은 가장 가까운 표준 ISO 7379 shoulder length를 선택해야 합니다.
+- `M6_shoulder_screw`의 70.6mm는 CAD 계산 shoulder 길이입니다. 실제 구매 규격은 가장 가까운 표준 ISO 7379 shoulder length를 선택해야 합니다.
 - J1 리드스크류 길이, 가이드 로드 길이, FC8 수량은 아직 현재 캐리지 assembly만으로 확정하지 않습니다.
