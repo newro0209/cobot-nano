@@ -16,10 +16,7 @@ module arm_carriage_top_plate() {
         // 뒤쪽(−Y) 로브 = 모터 슬롯 로브 — 모터가 near~far 전 구간에서 판 밖으로 벗어나지 않도록 슬롯 가동 길이만큼 늘린다.
         union() {
             ac_plate_base()
-                hull()
-                    for (center = [ac_j2_motor_near_center, ac_j2_motor_far_center])
-                        translate(center)
-                            offset(r = component_margin / 2) NEMA_outline(j2_motor_type);
+                ac_motor_slot_lobe();
 
             // LM8UU 양형 시트 — 25mm 필러처럼 판 간격이 베어링보다 길 때, 상판 아랫면 외곽 칼라로 베어링 OD를 잡는다.
             if (ac_linear_bearing_boss_height > eps)
@@ -48,7 +45,7 @@ module arm_carriage_top_plate() {
                                                seat_depth = ac_linear_bearing_seat_depth, from_top = false);
 
         // J2 스텝모터 슬롯 시트 — 아이들러 대신 모터가 Y 방향으로 이동해 벨트 장력을 조절한다.
-        translate(ac_j2_motor_near_center)
+        translate(ac_j2_motor_center_at(0))
             nema_motor_seat_slot_pocket(j2_motor_type,
                                          part_thickness = ac_thickness,
                                          travel_vector = ac_j2_motor_slot_vector,

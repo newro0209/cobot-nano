@@ -20,7 +20,7 @@ cc_j1_guide_axis_bounding_diameter = max(bearing_dia(j1_linear_bearing_type),
                                                 fc_flange_diameter(j1_flange_coupling_type)
                                             ) + component_margin;
 // 판 전체 경계 지름 — 중앙 스택 원과 가이드 로드 원이 외접해 늘어서므로 두 지름의 합으로 본다.
-cc_j1_axis_bounding_diameter = cc_j1_drive_axis_bounding_diameter + cc_j1_guide_axis_bounding_diameter;
+cc_j1_axis_bounding_diameter = cc_j1_drive_axis_bounding_diameter + cc_j1_guide_axis_bounding_diameter + component_margin;
 
 // 가이드 로드를 중심에서 얼마나 띄울지 — 중앙 스택 원과 로드 원이 서로 닿지 않고 외접하는 거리(두 반지름의 합).
 cc_j1_guide_rod_distance_from_center = center_distance_for_bounding_diameters(cc_j1_drive_axis_bounding_diameter, cc_j1_guide_axis_bounding_diameter);
@@ -48,5 +48,6 @@ module cc_plate_with_profile_2d(thickness) {
     }
 }
 
-if ($preview)
+// 이 파일을 단독으로 열 때만 미리보기를 그린다. 상위 어셈블리가 include하면 hide_part_self_preview를 켜 유령 블랭크를 막는다.
+if ($preview && is_undef(hide_part_self_preview))
     cc_plate_with_profile_2d(1);

@@ -14,20 +14,31 @@ ac_thickness = max(bb_width(j2_driven_ball_bearing_type)) + seat_shoulder_thickn
 // J2 로브(lobe) 지름 — 어깨축에서 겹쳐 도는 종동 베어링과 종동 풀리 중 큰 쪽을 감싸야 하므로 둘의 큰 값으로 잡는다.
 ac_j2_driven_axis_bounding_diameter = max(
     bb_diameter(j2_driven_ball_bearing_type),
-    pulley_extent(j2_driven_pulley_type) * 2
+    pulley_flange_dia(j2_driven_pulley_type)
 ) + component_margin;
+// 구동 풀리 최대 외경 — 치형 외경(pulley_od)보다 플랜지(pulley_flange_dia)가 크므로, 마진이 플랜지에 남으려면 큰 쪽을 기준으로 잡는다.
+ac_j2_drive_pulley_outer_dia = max(
+    pulley_od(j2_drive_pulley_type),
+    pulley_flange_dia(j2_drive_pulley_type)
+);
+ac_j2_motor_slot_bounding_diameter = max(
+    ac_j2_driven_axis_bounding_diameter,
+    NEMA_radius(j2_motor_type) * 2 + component_margin,
+    ac_j2_drive_pulley_outer_dia + component_margin
+);
+ac_j2_drive_pulley_slot_bounding_diameter = ac_j2_drive_pulley_outer_dia + component_margin;
 
 // J2 모터 슬롯 — 아이들러 없이 모터 전체를 −Y 방향으로 밀어 GT2 벨트 장력을 조절한다.
-// near 위치는 리드너트 플랜지와 모터 바디 사이가 component_margin만큼 남는 가장 안쪽 위치이고, far 위치가 최대 장력 위치다.
+// 모터 중심은 명명 위치 대신 정규화 함수 하나로 표현한다: fraction 0=near, 1=far.
+// near(0) 위치는 리드너트 플랜지와 모터 바디 사이가 component_margin만큼 남는 가장 안쪽 위치이고, far(1)가 최대 장력 위치다.
 ac_j2_motor_slot_travel = 8;
-ac_j2_motor_near_center = [0, -center_distance_for_bounding_diameters(
-                                leadnut_flange_dia(j1_leadnut_type),
-                                NEMA_width(j2_motor_type),
-                                component_margin)];
-function ac_j2_motor_center_at(slot_offset) = ac_j2_motor_near_center + [0, -slot_offset];
-ac_j2_motor_center = ac_j2_motor_center_at(ac_j2_motor_slot_travel / 2);
-ac_j2_motor_far_center = ac_j2_motor_center_at(ac_j2_motor_slot_travel);
-ac_j2_motor_slot_vector = ac_j2_motor_far_center - ac_j2_motor_near_center;
+function ac_j2_motor_center_at(fraction) =
+    [0, -center_distance_for_bounding_diameters(
+            leadnut_flange_dia(j1_leadnut_type),
+            NEMA_width(j2_motor_type),
+            component_margin)
+        - ac_j2_motor_slot_travel * fraction];
+ac_j2_motor_slot_vector = ac_j2_motor_center_at(1) - ac_j2_motor_center_at(0);
 
 // 상/하판 간격과 LM8UU 시트 깊이 — 필러 길이를 기준으로 판 간격을 정하고, 베어링이 양쪽 판에 닿을 때만 시트를 판다.
 ac_plate_gap = pillar_height(standoff_pillar_type);
@@ -56,8 +67,25 @@ module ac_standoff_positions(indices = ac_standoff_active_indices) {
             children();
 }
 
+// 뒤쪽 슬롯 로브(slot lobe) — J2 driven 팔과 같은 방식으로 J1 기준 원부터 슬롯 far 위치까지 같은 폭으로 뻗는다.
+// 슬롯 중간 위치는 far 위치로 가는 스타디움 팔 안에 포함되므로, 외곽은 항상 최대 슬롯 길이 기준으로 잡는다.
+module ac_rear_slot_lobe_to(center, diameter) {
+    hull() {
+        circle(d = diameter);
+        translate(center) circle(d = diameter);
+    }
+}
+
+module ac_motor_slot_lobe() {
+    ac_rear_slot_lobe_to(ac_j2_motor_center_at(1), diameter = ac_j2_motor_slot_bounding_diameter);
+}
+
+module ac_drive_pulley_slot_lobe() {
+    ac_rear_slot_lobe_to(ac_j2_motor_center_at(1), diameter = ac_j2_drive_pulley_slot_bounding_diameter);
+}
+
 // 뒤쪽(−Y) 로브는 판마다 다르므로(상판=모터 슬롯 풋프린트, 하판=20T 풀리 슬롯 풋프린트) ac_plate_base 안에 박지 않고
-// children()로 받는다. 호출 판이 모터 슬롯 전체를 덮는 2D 프로파일을 넘기고, 여기서 J1 중심과 한 몸으로 잇는다.
+// children()로 받는다. 호출 판이 이미 J1 기준 원과 연결된 2D 로브를 넘긴다.
 module ac_plate_base() {
     difference() {
         cc_plate_with_profile_2d(ac_thickness) {
@@ -67,11 +95,8 @@ module ac_plate_base() {
                 translate(j2_driven_axis_center) circle(d = ac_j2_driven_axis_bounding_diameter);
             }
 
-            // 뒤쪽(−Y) 로브 — 호출 판이 넘긴 2D 프로파일. J1 중심 원과 hull로 이어 외팔보를 −Y로 잇는다.
-            hull() {
-                circle(d = ac_j2_driven_axis_bounding_diameter);
-                children();
-            }
+            // 뒤쪽(−Y) 로브 — 호출 판이 만든 슬롯 로브를 그대로 더한다.
+            children();
         }
 
         // 가이드 로드 관통홀 — 봉이 판을 지나도록 로드 지름으로 뚫는다(상판은 여기에 LM8UU 시트를 덧깎는다).
@@ -90,8 +115,7 @@ module ac_plate_base() {
     }
 }
 
-if($preview)
+// 이 파일을 단독으로 열 때만 미리보기를 그린다. 상위 어셈블리가 include하면 hide_part_self_preview를 켜 유령 블랭크를 막는다.
+if($preview && is_undef(hide_part_self_preview))
     ac_plate_base()
-        hull()
-            for (center = [ac_j2_motor_near_center, ac_j2_motor_far_center])
-                translate(center) circle(d = ac_j2_driven_axis_bounding_diameter);
+        ac_motor_slot_lobe();

@@ -18,10 +18,7 @@ module arm_carriage_bottom_plate() {
         // 뒤쪽(−Y) 로브 = 20T 풀리 슬롯 로브 — 구동 풀리의 Y 방향 이동 범위를 모두 덮는다.
         union() {
             ac_plate_base()
-                hull()
-                    for (center = [ac_j2_motor_near_center, ac_j2_motor_far_center])
-                        translate(center)
-                            circle(d = pulley_od(j2_drive_pulley_type) + component_margin);
+                ac_drive_pulley_slot_lobe();
 
             // LM8UU 양형 시트 — 25mm 필러처럼 판 간격이 베어링보다 길 때, 하판 윗면 외곽 칼라로 베어링 OD를 잡는다.
             if (ac_linear_bearing_boss_height > eps)
