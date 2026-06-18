@@ -1,12 +1,12 @@
 # BOM
 
-이 문서는 현재 `config.scad`와 `assemblies/arm_carriage_assembly.scad` 기준의 수동 BOM입니다.
+이 문서는 현재 `config.scad`와 `assemblies/robot_assembly.scad` 기준의 수동 BOM입니다.
 수량이 실제 assembly에 배치된 항목과 config에만 선언된 상위 J1 인터페이스 항목을 분리합니다.
 구매 전에는 OpenSCAD echo와 공급사 도면을 다시 확인합니다.
 
 ## Arm Carriage Assembly
 
-`assemblies/arm_carriage_assembly.scad`에 실제 배치되는 캐리지 스택 기준입니다.
+`assemblies/robot_assembly.scad` 안의 `arm_carriage_assembly()` 스택에 실제 배치되는 캐리지 기준입니다.
 
 | 분류 | 품목 | CAD 타입 / 사양 | 수량 | 비고 |
 |------|------|------------------|------|------|
@@ -28,8 +28,7 @@
 
 ## Configured J1 Interface
 
-다음 항목은 `config.scad`에 J1 축 인터페이스로 선언되어 있지만, 현재 `arm_carriage_assembly.scad`에는 직접 배치되지 않습니다.
-컬럼/엔드플레이트 assembly가 추가될 때 별도 수량 확정이 필요합니다.
+다음 항목은 `config.scad`에 J1 축 인터페이스로 선언되어 있고, `robot_assembly.scad`의 base-column 쪽 배치를 기준으로 재점검이 필요합니다.
 
 | 분류 | 품목 | CAD 타입 / 사양 | 기준 수량 | 비고 |
 |------|------|------------------|-----------|------|

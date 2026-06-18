@@ -477,7 +477,7 @@ NopSCADlib처럼 타입 배열, 접근자 함수, 모듈을 이미 제공하는 
 
 ## 9. 조립 라벨 오버레이 [A]
 
-조립체(`assemblies/`)에는 부품을 지목하는 프리뷰 전용 라벨 오버레이를 둘 수 있다. 구현은 `assemblies/annotations.scad`(빌보드 텍스트·지시선·자동 배치 모듈)와 호출부(`arm_carriage_assembly.scad`의 `ac_part_labels`)를 기준으로 한다.
+조립체(`assemblies/`)에는 부품을 지목하는 프리뷰 전용 라벨 오버레이를 둘 수 있다. 구현은 `assemblies/annotations.scad`(빌보드 텍스트·지시선·자동 배치 모듈)와 호출부(`robot_assembly.scad`의 assembly section별 label module)를 기준으로 한다.
 
 ### A-1 (MUST) 라벨은 `$preview` 전용이며 형상에 영향을 주지 않는다
 
@@ -489,7 +489,7 @@ NopSCADlib처럼 타입 배열, 접근자 함수, 모듈을 이미 제공하는 
 
 ### A-3 (MUST) 라벨 색은 대상 부품의 렌더 색과 같게 한다
 
-부품 색을 한 곳(예: `ac_col_*`)에 정의해 그리기와 라벨이 같은 변수를 공유한다. 라벨·지시선·점을 그 색으로 그려 어느 부품을 가리키는지 색으로도 잇는다. 내부 고정색 vitamin(NopSCADlib 모터·베어링·체결구)은 재질색으로 근사한다. 글자 가독성을 위해 명도 기준 대비 테두리(`contrast_outline`)를 덧댄다 — 회색 계열은 RGB 보색이 다시 회색이라 대비가 안 나므로 흑/백을 쓴다.
+부품 색을 한 곳(예: `asm_col_*`)에 정의해 그리기와 라벨이 같은 변수를 공유한다. 라벨·지시선·점을 그 색으로 그려 어느 부품을 가리키는지 색으로도 잇는다. 내부 고정색 vitamin(NopSCADlib 모터·베어링·체결구)은 재질색으로 근사한다. 글자 가독성을 위해 명도 기준 대비 테두리(`contrast_outline`)를 덧댄다 — 회색 계열은 RGB 보색이 다시 회색이라 대비가 안 나므로 흑/백을 쓴다.
 
 ### A-4 (MUST) exploded에서 라벨은 대상과 같은 변환으로 따라 움직인다
 

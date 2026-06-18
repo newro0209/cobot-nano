@@ -17,7 +17,7 @@ vitamins/          local vitamins not in NopSCADlib (mirror NopSCADlib's family-
   screws.scad        local M6_shoulder_screw added to NopSCADlib's screw family
   pulleys.scad       local GT2x60x8_pulley added to NopSCADlib's pulley family
 parts/             fabricated parts (NopSCADlib printed/ analog) — 2D profile + extrude/pockets per module
-assemblies/        sub-assemblies — parts + vitamins, exploded view
+assemblies/        integrated robot assembly preview — parts + vitamins, exploded view
 docs/              kinematic chain, BOM
 main.scad          full robot + animation hooks (incomplete scaffolding)
 export/            cut-file generation (not yet wired)
@@ -31,9 +31,9 @@ fabricated parts live in `parts/` like NopSCADlib's `printed/`. See `CLAUDE.md`.
 ## Workflow
 1. Tune shared values in `config.scad` and subsystem values in
    `parts/arm_carriage_plate_base.scad`.
-2. Preview: open `assemblies/arm_carriage_assembly.scad` in OpenSCAD
-   (use the `ac_exploded` slider to explode the stack).
-3. Headless check: `openscad -o out.echo assemblies/arm_carriage_assembly.scad`
+2. Preview: open `assemblies/robot_assembly.scad` in OpenSCAD
+   (use the `bc_exploded`, `ac_exploded`, and `ua_exploded` sliders to explode stacks).
+3. Headless check: `openscad -o out.echo assemblies/robot_assembly.scad`
    (only NopSCADlib's internal `2p54` deprecation should appear).
 
 ## BOM

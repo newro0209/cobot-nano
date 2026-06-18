@@ -55,6 +55,3 @@ module bc_plate_base() {
                 cylinder(r = screw_clearance_radius(standoff_screw_type), h = bc_plate_thickness + eps * 2);
     }
 }
-
-if ($preview && is_undef(hide_part_self_preview))
-    bc_plate_base();

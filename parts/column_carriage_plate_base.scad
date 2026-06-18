@@ -11,16 +11,14 @@ use <../utils/placement.scad>
 
 // 중앙 J1 구동 스택(drive stack) 경계 지름 — 모터 바디·커플링·플랜지 베어링 블록 중 가장 큰 외형에 조립 여유를 더해
 // 중앙부가 차지하는 원의 지름으로 삼는다. NEMA_radius*2 = 모터 바디 폭.
-cc_j1_drive_axis_bounding_diameter = max(NEMA_radius(j1_motor_type) * 2,
+cc_j1_drive_axis_bounding_diameter = bounding_diameter_with_margin(max(NEMA_radius(j1_motor_type) * 2,
                                                 sc_length(j1_shaft_coupling_type),
-                                                kfl_length(j1_flange_bearing_block_type)
-                                            ) + component_margin;
+                                                kfl_length(j1_flange_bearing_block_type)), component_margin);
 // 가이드 로드 1개 경계 지름 — LM8UU 직선 베어링과 FC8 플랜지 중 큰 쪽에 여유를 더한, 로드별 점유 원 지름.
 // 주의: 캐리지 자체엔 로드에 LM8UU(15mm)만 타지만, 이 블랭크는 단판(end plate)과 공유한다 — 단판은 로드 끝을 FC8 플랜지(현 32mm)로
 // 무므로 그쪽이 지배해 점유 원이 38mm로 커진다. 캐리지 단독 기준으론 과하지만, 단판과 외곽을 맞추려 일부러 둘의 큰 값으로 둔다.
-cc_j1_guide_axis_bounding_diameter = max(bearing_dia(j1_linear_bearing_type),
-                                                fc_flange_diameter(j1_flange_coupling_type)
-                                            ) + component_margin;
+cc_j1_guide_axis_bounding_diameter = bounding_diameter_with_margin(max(bearing_dia(j1_linear_bearing_type),
+                                                fc_flange_diameter(j1_flange_coupling_type)), component_margin);
 // 판 전체 경계 지름 — 중앙 스택 원과 가이드 로드 원이 외접해 늘어서므로 두 지름의 합으로 본다.
 cc_j1_axis_bounding_diameter = cc_j1_drive_axis_bounding_diameter + cc_j1_guide_axis_bounding_diameter + component_margin;
 
@@ -55,7 +53,3 @@ module cc_plate_with_profile_2d(thickness) {
         children();
     }
 }
-
-// 이 파일을 단독으로 열 때만 미리보기를 그린다. 상위 어셈블리가 include하면 hide_part_self_preview를 켜 유령 블랭크를 막는다.
-if ($preview && is_undef(hide_part_self_preview))
-    cc_plate_with_profile_2d(1);

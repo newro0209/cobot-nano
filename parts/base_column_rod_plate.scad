@@ -5,7 +5,6 @@
 // BASE_COLUMN 로드/리드스크류 지지 판 — 상부와 하부에 같은 부품을 쓰며, 가이드 로드 3개는 FC8 플랜지 커플링으로 잡고,
 // 리드스크류는 중앙 KFL08 플랜지 베어링 블록으로 받는다.
 
-hide_part_self_preview = true;
 include <base_column_plate_base.scad>
 use <flange_bearing_block_seat.scad>
 use <flange_coupling_seat.scad>

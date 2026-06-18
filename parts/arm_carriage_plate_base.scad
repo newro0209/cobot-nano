@@ -15,7 +15,9 @@ ac_thickness = max(bb_width(j2_driven_ball_bearing_type)) + seat_shoulder_thickn
 
 // J2 종동축 로브 지름 — 어깨축에서 겹쳐 도는 종동 베어링·종동 풀리 중 큰 쪽을 envelope로 감싼다(반경 마진 근거는 함수 정의 참고).
 ac_j2_driven_axis_bounding_diameter =
-    bounding_diameter_with_margin(max(bb_diameter(j2_driven_ball_bearing_type),
+    bounding_diameter_with_margin(max(NEMA_radius(j3_motor_type) * 2,
+                                      bb_diameter(j2_driven_ball_bearing_type),
+                                      fc_flange_diameter(j2_driven_flange_coupling_type),
                                       pulley_flange_dia(j2_driven_pulley_type)), component_margin);
 // 구동 풀리 최대 외경 — 치형 외경(pulley_od)보다 플랜지(pulley_flange_dia)가 크므로 큰 쪽으로 잡는다.
 ac_j2_drive_pulley_outer_dia = max(pulley_od(j2_drive_pulley_type),
@@ -123,8 +125,3 @@ module ac_plate_base() {
                 cylinder(r = screw_clearance_radius(standoff_screw_type), h = ac_thickness + eps * 2);
     }
 }
-
-// 이 파일을 단독으로 열 때만 미리보기를 그린다. 상위 어셈블리가 include하면 hide_part_self_preview를 켜 유령 블랭크를 막는다.
-if($preview && is_undef(hide_part_self_preview))
-    ac_plate_base()
-        ac_motor_slot_lobe();

@@ -6,13 +6,7 @@
 // NopSCADlib vitamin 패밀리와 프로젝트 로컬 vitamin 확장(vitamins/screws, vitamins/pulleys)을 함께 가져온다.
 // 작은 fudge 값(coincident-face 방지)은 NopSCADlib 전역 `eps`(=1/128)를 그대로 쓴다 — 별도 정의하지 않는다.
 
-include <NopSCADlib/core.scad>
-include <NopSCADlib/global_defs.scad>
-include <NopSCADlib/vitamins/ball_bearings.scad>
-include <NopSCADlib/vitamins/linear_bearings.scad>
-include <NopSCADlib/vitamins/leadnuts.scad>
-include <NopSCADlib/vitamins/stepper_motors.scad>
-include <NopSCADlib/vitamins/shaft_couplings.scad>
+include <NopSCADlib/lib.scad>
 include <vitamins/pillars.scad>               // 로컬 M3x25_ff_hex_pillar (+ NopSCADlib pillar 패밀리)
 include <vitamins/screws.scad>                // 로컬 M6_shoulder_screw (+ NopSCADlib screw 패밀리)
 include <vitamins/pulleys.scad>               // 로컬 GT2x60x8_pulley (+ NopSCADlib pulley 패밀리)
@@ -73,10 +67,26 @@ j2_driven_shoulder_screw_type = M6_shoulder_screw;  // 어깨 피벗 고정 — 
 j2_driven_flange_coupling_type = FC8;          // 어깨축 상/하단 링크 마운트 — 허브가 숄더 봉을 죄고 플랜지가 상/하 암 링크를 무다
 
 // J1(중심축)에서 J2(어깨축)까지 수평 거리 — 캐리지 판이 두 축을 잇는 길이(기준 치수).
-shoulder_mount_link_length = 80;
+shoulder_mount_link_length = 100;
 
 // J2 어깨축 중심 — J1 원점에서 +Y로 링크 길이만큼 떨어진 좌표.
 j2_driven_axis_center = [0, shoulder_mount_link_length];
+
+// ── J3 축(팔꿈치 회전, revolute joint) — GT2 타이밍벨트로 전완을 수평 회전한다 ──
+// 모터 20T 구동 풀리 → GT2 벨트 → 60T 종동 풀리로 3:1 감속, 종동축은 BB608로 상완(upper arm)에 회전 지지된다.
+// J3 모터는 상완 근위의 J2 축과 동축으로 둔다. 20T 구동 풀리가 같은 축에서 원위 J3 60T 종동 풀리를 구동한다.
+j3_motor_type               = NEMA17_34;        // 팔꿈치 구동 모터 — 상완 끝단 하중이 작아 짧은 바디(필요시 변경)
+j3_drive_pulley_type        = GT2x20um_pulley;   // 모터축 20T 구동 풀리(J2와 동일)
+j3_driven_ball_bearing_type = BB608;             // 종동축(팔꿈치 피벗) 베어링 — 60T 종동 풀리 보어(8mm)에 맞춰 보어 8mm(J2와 동일)
+j3_driven_pulley_type       = GT2x60x8_pulley;   // 60T 종동 풀리 — 20:60 = 3:1 감속(J2와 동일)
+j3_driven_shoulder_screw_type = M6_shoulder_screw; // 팔꿈치 피벗 고정 — 숄더부가 BB608 보어(8mm)를 채우고 끝 나사산에 락너트(J2와 동일)
+assert(pulley_belt(j3_drive_pulley_type) == pulley_belt(j3_driven_pulley_type),
+       "J3 구동 풀리와 종동 풀리는 같은 벨트 타입이어야 한다");
+
+// J2(어깨축)에서 J3(팔꿈치축)까지 수평 거리 — 상완 링크가 두 축을 잇는 길이(기준 치수, 상완 로컬 프레임).
+upper_arm_length = 100;
+// J3 팔꿈치축 중심 — 상완 로컬 원점(=J2 마운트)에서 +Y로 링크 길이만큼.
+j3_elbow_axis_center = [0, upper_arm_length];
 
 // 캐리지 스탠드오프 — 위·아래 캐리지 판을 잇는 M3 양끝 암나사 필러와 체결 볼트를 고른다.
 // (볼트 서클 배치값은 형상 종속이라 arm_carriage_plate_base.scad의 ac_standoff_*에 둔다.)

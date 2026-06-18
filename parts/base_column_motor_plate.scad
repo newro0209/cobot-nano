@@ -4,7 +4,6 @@
 //
 // BASE_COLUMN 모터 판 — 중앙 NEMA 모터를 잡아 모터축이 아래쪽 샤프트 커플링을 통해 리드스크류와 직결되게 한다.
 
-hide_part_self_preview = true;
 include <base_column_plate_base.scad>
 use <flange_coupling_seat.scad>
 use <motor_seat.scad>
